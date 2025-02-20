@@ -1,0 +1,17 @@
+node_modules
+# Ignore Flutter build files
+build/
+.dart_tool/
+
+# Ignore APK and iOS build files
+*.apk
+*.ipa
+
+# Ignore IDE and system files
+*.iml
+.idea/
+.vscode/
+.DS_Store
+
+# Ignore dependency-related files
+pubspec.lock
