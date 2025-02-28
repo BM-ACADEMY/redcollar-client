@@ -245,13 +245,31 @@ class _HomeContent extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Hi $username',
-                    style: GoogleFonts.rubik(
-                      color: Colors.black, //Color(0xFFFE0000)
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment
+                        .center, // Centers elements in the main axis
+                    crossAxisAlignment: CrossAxisAlignment
+                        .center, // Centers elements in the cross axis
+                    children: [
+                      Text(
+                        'Hi $username',
+                        style: GoogleFonts.rubik(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 5), // Add spacing between texts
+                      // Text(
+                      //   'R & C',
+
+                      //   style: GoogleFonts.rubik(
+                      //     color: Color(0xFFFE0000),
+                      //     fontSize: 20,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text(
