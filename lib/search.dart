@@ -617,9 +617,85 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => isLoading = false);
   }
 
-  Future<void> fetchProducts() async {
-    if (isLoading || !hasMore) return;
-    setState(() => isLoading = true);
+  // Future<void> fetchProducts() async {
+  //   if (isLoading || !hasMore) return;
+  //   setState(() => isLoading = true);
+
+  //   try {
+  //     String url = '$baseUrl/products/search-products?';
+  //     if (selectedCategory != null) url += 'categoryId=$selectedCategory&';
+  //     if (selectedGender.isNotEmpty) url += 'gender=$selectedGender&';
+  //     if (selectedColors.isNotEmpty)
+  //       url += 'color=${selectedColors.join(',')}&';
+  //     if (selectedSizes.isNotEmpty) url += 'size=${selectedSizes.join(',')}&';
+  //     if (selectedPriceRange != null) url += 'priceRange=$selectedPriceRange&';
+  //     url += 'sort=$sortOption&page=$page&limit=10';
+
+  //     final response = await http.get(Uri.parse(url));
+
+  //     if (response.statusCode == 200) {
+  //       final jsonResponse = json.decode(response.body);
+  //       if (jsonResponse.containsKey('products') &&
+  //           jsonResponse['products'] != null) {
+  //         List<dynamic> newProducts = jsonResponse['products'];
+
+  //         setState(() {
+  //           isLoading = false;
+  //           if (newProducts.isEmpty) hasMore = false;
+
+  //           products.addAll(newProducts.map((product) => {
+  //                 'id': product['_id'] ?? '',
+  //                 'name': product['name'] ?? 'Unknown',
+  //                 'description':
+  //                     product['description'] ?? 'No description available',
+  //                 'category':
+  //                     product['category'] ?? '', // Assuming it's an ObjectId
+  //                 'brand': product['brand'] ?? 'Unknown',
+  //                 'original_price': product['original_price'] ?? 0.0,
+  //                 'discount_percentage': product['discount_percentage'] ?? 0.0,
+  //                 'color': List<String>.from(
+  //                     product['color'] ?? []), // Ensure it's a list of strings
+  //                 'sizes': List<String>.from(
+  //                     product['sizes'] ?? []), // Ensure it's a list of strings
+  //                 'stock_quantity': product['stock_quantity'] ?? 0,
+  //                 'images': (product['images'] is List &&
+  //                         product['images'].isNotEmpty)
+  //                     ? product['images']
+  //                     : [], // Ensure it's always a list
+  //                 'gender': product['gender'] ?? '',
+  //                 'age_category': product['age_category'] ?? '',
+  //                 'similar_products': List<String>.from(
+  //                     product['similar_products'] ??
+  //                         []), // Ensure it's a list of strings
+  //                 'rating': product['rating'] ?? 0,
+  //                 'deliveryOption':
+  //                     product['deliveryOption'] ?? 'No Delivery Option',
+  //               }));
+  //           page++;
+  //         });
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching products: $e');
+  //   }
+
+  //   setState(() => isLoading = false);
+  // }
+  Future<void> fetchProducts({bool reset = false}) async {
+    if (isLoading || (!hasMore && !reset)) return; // Prevent duplicate requests
+
+    if (reset) {
+      setState(() {
+        isLoading = true; // Show loader only for new filter selection
+        products.clear(); // Clear old data when new filters are applied
+        hasMore = true; // Reset pagination flag
+        page = 1; // Reset page count
+      });
+    } else {
+      setState(() {
+        isLoading = true; // Show loader for pagination (next page load)
+      });
+    }
 
     try {
       String url = '$baseUrl/products/search-products?';
@@ -635,51 +711,26 @@ class _SearchScreenState extends State<SearchScreen> {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        if (jsonResponse.containsKey('products') &&
-            jsonResponse['products'] != null) {
-          List<dynamic> newProducts = jsonResponse['products'];
+        List<dynamic> newProducts = jsonResponse['products'] ?? [];
 
-          setState(() {
-            isLoading = false;
-            if (newProducts.isEmpty) hasMore = false;
+        setState(() {
+          if (reset) {
+            products = newProducts;
+          } else {
+            products.addAll(newProducts);
+          }
 
-            products.addAll(newProducts.map((product) => {
-                  'id': product['_id'] ?? '',
-                  'name': product['name'] ?? 'Unknown',
-                  'description':
-                      product['description'] ?? 'No description available',
-                  'category':
-                      product['category'] ?? '', // Assuming it's an ObjectId
-                  'brand': product['brand'] ?? 'Unknown',
-                  'original_price': product['original_price'] ?? 0.0,
-                  'discount_percentage': product['discount_percentage'] ?? 0.0,
-                  'color': List<String>.from(
-                      product['color'] ?? []), // Ensure it's a list of strings
-                  'sizes': List<String>.from(
-                      product['sizes'] ?? []), // Ensure it's a list of strings
-                  'stock_quantity': product['stock_quantity'] ?? 0,
-                  'images': (product['images'] is List &&
-                          product['images'].isNotEmpty)
-                      ? product['images']
-                      : [], // Ensure it's always a list
-                  'gender': product['gender'] ?? '',
-                  'age_category': product['age_category'] ?? '',
-                  'similar_products': List<String>.from(
-                      product['similar_products'] ??
-                          []), // Ensure it's a list of strings
-                  'rating': product['rating'] ?? 0,
-                  'deliveryOption':
-                      product['deliveryOption'] ?? 'No Delivery Option',
-                }));
-            page++;
-          });
-        }
+          hasMore = newProducts.length == 10; // Check if more pages exist
+          page++;
+        });
       }
     } catch (e) {
       print('Error fetching products: $e');
     }
 
-    setState(() => isLoading = false);
+    setState(() {
+      isLoading = false; // Ensure loading is stopped
+    });
   }
 
   void _scrollListener() {
@@ -749,82 +800,165 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget buildCategoryDropdown() {
-    return buildDropdown(
-      hint: "Select Category",
-      value: selectedCategory?.isNotEmpty == true
-          ? selectedCategory
-          : (categories.isNotEmpty
-              ? categories[0]['_id']
-              : ''), // Use first category if empty or null
-      items: categories.map((category) {
-        return DropdownMenuItem<String>(
-          value: category['_id'] ?? '', // Ensure valid ID
-          child: Text(category['name'] ?? 'Unknown'),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedCategory = value;
-          products.clear();
-          page = 1;
-          hasMore = true;
-        });
-        fetchProducts();
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 10),
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 10), // Added margin
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: selectedCategory?.isNotEmpty == true
+                ? selectedCategory
+                : (categories.isNotEmpty ? categories[0]['_id'] : ''),
+            decoration: InputDecoration(
+              border: InputBorder.none, // Remove default underline
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            ),
+            icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+            style: TextStyle(fontSize: 16, color: Colors.black),
+            dropdownColor: Colors.white,
+            hint: Text("Select Category", style: TextStyle(color: Colors.grey)),
+            items: categories.map((category) {
+              return DropdownMenuItem<String>(
+                value: category['_id'] ?? '',
+                child: Row(
+                  children: [
+                    Icon(Icons.category,
+                        color: const Color.fromARGB(255, 255, 68, 68),
+                        size: 18),
+                    SizedBox(width: 10),
+                    Text(category['name'] ?? 'Unknown'),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCategory = value;
+                products.clear();
+                page = 1;
+                hasMore = true;
+              });
+              fetchProducts();
+            },
+          ),
+        ),
+        SizedBox(height: 10), // Added spacing below dropdown
+      ],
     );
   }
 
   Widget buildPriceRangeDropdown() {
-    return buildDropdown(
-      hint: "Select Price Range",
-      value: selectedPriceRange ??
-          'under_40000', // Default to 'under_40000' if null
-      items: [
-        DropdownMenuItem<String>(
-          value: 'under_40000',
-          child: Text("Under 40000"),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 10), // Added margin
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: selectedPriceRange ?? 'under_40000',
+            decoration: InputDecoration(
+              border: InputBorder.none, // Remove default underline
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            ),
+            icon: Icon(Icons.price_check, color: Colors.green),
+            style: TextStyle(fontSize: 16, color: Colors.black),
+            dropdownColor: Colors.white,
+            hint: Text("Select Price Range",
+                style: TextStyle(color: Colors.grey)),
+            items: [
+              DropdownMenuItem<String>(
+                value: 'under_40000',
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_downward,
+                        color: Colors.blueAccent, size: 18),
+                    SizedBox(width: 10),
+                    Text("Under 40000"),
+                  ],
+                ),
+              ),
+              DropdownMenuItem<String>(
+                value: 'above_50000',
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_upward, color: Colors.redAccent, size: 18),
+                    SizedBox(width: 10),
+                    Text("Above 50000"),
+                  ],
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedPriceRange = value ?? 'under_40000';
+                products.clear();
+                page = 1;
+                hasMore = true;
+              });
+              fetchProducts();
+            },
+          ),
         ),
-        DropdownMenuItem<String>(
-          value: 'above_50000',
-          child: Text("Above 50000"),
-        ),
+        SizedBox(height: 10), // Added spacing below dropdown
       ],
-      onChanged: (value) {
-        setState(() {
-          selectedPriceRange =
-              value ?? 'under_40000'; // Default to 'under_40000' if null
-          products.clear();
-          page = 1;
-          hasMore = true;
-        });
-        fetchProducts();
-      },
     );
   }
 
   Widget buildProductList() {
+    if (isLoading && products.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (products.isEmpty) {
+      return Center(child: Text("No products found"));
+    }
+
     return ListView.builder(
       controller: _scrollController,
       itemCount: products.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == products.length) {
+        if (index == products.length && hasMore) {
           return Center(child: CircularProgressIndicator());
         }
 
         var product = products[index];
-        String imageUrl = (product['images'] is List &&
-                product['images'].isNotEmpty)
-            ? getImageUrl(product['images'][0]) // Ensure first image is used
-            : ''; // Default empty if no image
+        String imageUrl =
+            (product['images'] is List && product['images'].isNotEmpty)
+                ? product['images'][0]
+                : '';
 
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProductDetailPage(
-                  product: product,
-                ),
+                builder: (_) => ProductDetailPage(product: product),
               ),
             );
           },
@@ -833,35 +967,60 @@ class _SearchScreenState extends State<SearchScreen> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.network(
-                    imageUrl,
-                    width: double.infinity, // Full width of the card
-                    height: 150,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Icon(
+            child: Stack(
+              children: [
+                // Product Image
+                Stack(
+                  children: [
+                    Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 150,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.broken_image,
-                        size: 50), // Handle broken images
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    product['name'],
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  Text(
-                    "Brand: ${product['brand'] ?? 'N/A'}",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Text(
-                    "Price: \₹${product['original_price']}",
-                    style: TextStyle(color: Colors.red, fontSize: 16),
-                  ),
-                ],
-              ),
+                        size: 50,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: CustomPaint(
+                        size: Size(double.infinity,
+                            50), // Adjust height of the overlay
+                        painter: BoxOverlayPainter(),
+                        child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product['name'],
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                "Brand: ${product['brand'] ?? 'N/A'}",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              Text(
+                                "Price: ₹${product['original_price']}",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         );
@@ -879,22 +1038,65 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(title: Text("Search Products")),
+  //     body: Column(
+  //       children: [
+  //         if (isLoading && categories.isEmpty)
+  //           Center(child: CircularProgressIndicator()),
+  //         buildCategoryDropdown(),
+  //         buildPriceRangeDropdown(),
+  //         buildGenderDropdown(), // Add gender filter dropdown here
+  //         Expanded(
+  //             child: isLoading && products.isEmpty
+  //                 ? Center(child: CircularProgressIndicator())
+  //                 : buildProductList()),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Search Products")),
+      appBar: AppBar(
+        title: Text(
+          "Search Products",
+          style: TextStyle(color: Colors.black, fontSize: 16),
+        ),
+        backgroundColor: Colors.white, // White AppBar background
+        elevation: 1, // Medium drop shadow
+        shadowColor: Colors.black26,
+        iconTheme: IconThemeData(color: Colors.black),
+      ),
+      backgroundColor: Colors.white, // White background for the entire screen
       body: Column(
         children: [
-          if (isLoading && categories.isEmpty)
-            Center(child: CircularProgressIndicator()),
           buildCategoryDropdown(),
           buildPriceRangeDropdown(),
-          buildGenderDropdown(), // Add gender filter dropdown here
-          Expanded(
-              child: isLoading && products.isEmpty
-                  ? Center(child: CircularProgressIndicator())
-                  : buildProductList()),
+          // buildGenderDropdown(),
+          Expanded(child: buildProductList()),
         ],
       ),
     );
   }
+}
+
+class BoxOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withOpacity(0.5) // Semi-transparent overlay
+      ..style = PaintingStyle.fill;
+
+    final rect = RRect.fromRectAndCorners(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      topLeft: Radius.circular(10), // Rounded top-left corner
+      bottomLeft: Radius.circular(10), // Rounded bottom-left corner
+    );
+
+    canvas.drawRRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

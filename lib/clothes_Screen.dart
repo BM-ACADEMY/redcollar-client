@@ -188,6 +188,7 @@ import 'cart_screen.dart';
 import 'favorites_provider.dart';
 import 'favorites_page.dart';
 import 'search.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ClothesSectionPage extends StatefulWidget {
   final String category;
@@ -209,6 +210,7 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
   String searchQuery = "";
   int _currentIndex = 0; // Tracks selected tab
   final List<Widget> _pages = []; // Stores different pages
+  final String? baseUrl = dotenv.env['BASE_URL'];
 
   @override
   void initState() {
@@ -234,7 +236,7 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
     final response = await http.get(
       Uri.parse(
-          'http://10.0.2.2:6000/api/products/fetch-product-by-category/${widget.documentId}'),
+          '$baseUrl/products/fetch-product-by-category/${widget.documentId}'),
     );
 
     if (response.statusCode == 200) {
@@ -259,11 +261,12 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
       appBar: AppBar(
         title: Text(
           widget.category,
-          style: const TextStyle(color: Colors.brown),
+          style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
         backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.brown),
+        iconTheme: const IconThemeData(color: Colors.black, size: 20),
       ),
+      backgroundColor: Colors.white,
       body: _currentIndex == 0
           ? Column(
               children: [
@@ -275,6 +278,12 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
                       setState(() {
                         searchQuery = value.toLowerCase();
                       });
+                    },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SearchScreen()),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search',
@@ -302,6 +311,9 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return _buildEmptyState();
                       }
+                      // if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      //   return _buildNotFoundState(); // Show "Product Not Found" with Cart Icon
+                      // }
 
                       final products = snapshot.data ?? [];
                       final filteredProducts = products
@@ -344,10 +356,15 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.brown,
+        selectedItemColor: Colors.black,
+        backgroundColor: Colors.white,
         unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        showSelectedLabels: true,
+        showUnselectedLabels: false, // Hide unselected labels
+        selectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ), // Style only the active label
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
@@ -360,6 +377,22 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
       ),
     );
   }
+
+  // Widget _buildNotFoundState() {
+  //   return Center(
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Icon(Icons.shopping_cart, size: 80, color: Colors.grey),
+  //         const SizedBox(height: 10),
+  //         Text(
+  //           "No products found",
+  //           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildClothingCard(
     BuildContext context,
@@ -399,11 +432,8 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
+                  color: Color.fromARGB(255, 238, 238, 238),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -457,7 +487,9 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
                             isFavorite
                                 ? Icons.shopping_bag
                                 : Icons.shopping_bag_outlined,
-                            color: isFavorite ? Colors.red : Colors.brown,
+                            color: isFavorite
+                                ? Colors.red
+                                : const Color(0xFFFE0000),
                           ),
                         ),
                       ],
@@ -481,8 +513,8 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
     }
 
     // Get image URL dynamically
-    String imageUrl = getImageUrl(imagePath);
-
+    // String imageUrl = getImageUrl(imagePath);
+    String imageUrl = imagePath;
     // If it's a network URL
     return CachedNetworkImage(
       imageUrl: imageUrl,
@@ -532,9 +564,12 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Lottie.asset('assets/jsons/empty.json', height: 200),
-          const SizedBox(height: 16),
-          const Text('No items found.', style: TextStyle(fontSize: 16)),
+          Icon(Icons.shopping_cart, size: 80, color: Colors.grey),
+          const SizedBox(height: 10),
+          Text(
+            "No products found",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
@@ -545,7 +580,7 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Lottie.asset('assets/jsons/error.json', height: 200),
+          // Lottie.asset('assets/jsons/error.json', height: 200),
           const SizedBox(height: 16),
           const Text('Error loading data.', style: TextStyle(fontSize: 16)),
         ],

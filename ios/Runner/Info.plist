@@ -28,6 +28,10 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSUserNotificationUsageDescription</key>
+<string>We use notifications to keep you updated.</string>
+<key>UIApplicationSupportsIndirectInputEvents</key>
+<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -61,6 +65,7 @@
     <key>FacebookDisplayName</key>
     <string>flutter_application_1</string>
     <key>LSApplicationQueriesSchemes</key>
+	
     <array>
         <string>fbapi</string>
         <string>fb-messenger-share-api</string>

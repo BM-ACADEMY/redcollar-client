@@ -72,7 +72,8 @@ class ReviewHomePage extends StatelessWidget {
                               .map<Widget>((imagePath) => Padding(
                                     padding: const EdgeInsets.only(right: 8.0),
                                     child: Image.network(
-                                      getImageUrl(imagePath),
+                                      // getImageUrl(imagePath),
+                                      imagePath,
                                       width: 50,
                                       height: 50,
                                       fit: BoxFit

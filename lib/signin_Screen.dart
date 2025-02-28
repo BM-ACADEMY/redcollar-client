@@ -358,7 +358,7 @@ class _LoginPageState extends State<LoginPage> {
                             backgroundColor: Colors.white,
                             textColor: Colors.black,
                             icon:
-                                Image.asset("assets/facebook.png", height: 24),
+                                Image.asset("assets/facebook.png", height: 30),
                           ),
                           const SizedBox(height: 24),
                           Column(
@@ -366,7 +366,7 @@ class _LoginPageState extends State<LoginPage> {
                               Text(
                                 'Don’t you have an account?',
                                 style: GoogleFonts.lato(
-                                  color: Colors.white,
+                                  color: Color(0xFFA7A09D),
                                   fontSize: 14,
                                 ),
                               ),
@@ -384,14 +384,15 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text(
                                   'Sign up',
                                   style: GoogleFonts.lato(
-                                    color: Colors.white,
+                                    color: Color(0xFFA7A09D),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 8),
                         ],
                       ),
                     ),

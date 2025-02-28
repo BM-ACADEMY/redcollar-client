@@ -93,19 +93,53 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             TextField(
               controller: _newPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'New Password'),
+              decoration: InputDecoration(
+                labelText: 'New Password',
+                labelStyle: TextStyle(color: Colors.black), // Black label color
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Rounded corners
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: Colors.black, width: 2), // Black focus border
+                ),
+              ),
             ),
+            SizedBox(height: 10), // Spacing between fields
             TextField(
               controller: _confirmPasswordController,
               obscureText: true,
-              decoration:
-                  const InputDecoration(labelText: 'Confirm New Password'),
+              decoration: InputDecoration(
+                labelText: 'Confirm New Password',
+
+                labelStyle: TextStyle(color: Colors.black), // Black label color
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Rounded corners
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: Colors.black, width: 2), // Black focus border
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20), // Spacing before button
             ElevatedButton(
               onPressed: updatePassword,
-              child: const Text('Change Password'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black, // Black background
+                foregroundColor: Colors.white, // White text
+                padding: EdgeInsets.symmetric(vertical: 10), // Padding 10px
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50), // Rounded corners
+                ),
+                minimumSize: Size(
+                    double.infinity, 50), // Full-width button with height 50
+              ),
+              child: Text('Change Password', style: TextStyle(fontSize: 16)),
             ),
+
             if (errorMessage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),

@@ -237,8 +237,9 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
             itemBuilder: (context, index) {
               final promo = promotions[index];
               final promoId = promo['_id'];
-              final imageUrl =
-                  promo['Image'] != null ? getImageUrl(promo['Image']) : null;
+              // final imageUrl =
+              //     promo['Image'] != null ? getImageUrl(promo['Image']) : null;
+              final imageUrl = promo['Image'] != null ? promo['Image'] : null;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),

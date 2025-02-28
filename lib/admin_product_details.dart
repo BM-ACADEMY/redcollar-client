@@ -28,6 +28,7 @@ class AdminProductDetailsPage extends StatefulWidget {
 class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> categories = [];
+  List<Map<String, dynamic>> types = [];
   // List to store picked images from the file picker (used in the form)
   List<XFile>? _pickedImages;
   static String? baseUrl = dotenv.env['BASE_URL'];
@@ -37,6 +38,7 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
     super.initState();
     fetchProducts();
     fetchCategories();
+    fetchTypes();
   }
 
   late String userId;
@@ -51,13 +53,31 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
   // Fetch all categories for the dropdown.
   Future<void> fetchCategories() async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/category/fetch-all-categories'));
-      if (response.statusCode == 200) {
+      final response = await http
+          .get(Uri.parse('$baseUrl/category/fetch-all-categories-for-admin'));
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         setState(() {
           // API returns: { "message": "...", "data": [ ... ] }
           categories = List<Map<String, dynamic>>.from(data['data']);
+        });
+      } else {
+        throw Exception('Failed to load categories');
+      }
+    } catch (e) {
+      print("Error fetching categories: $e");
+    }
+  }
+
+  Future<void> fetchTypes() async {
+    try {
+      final response =
+          await http.get(Uri.parse('$baseUrl/types/get-all-types'));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        print(data);
+        setState(() {
+          types = List<Map<String, dynamic>>.from(data['data']);
         });
       } else {
         throw Exception('Failed to load categories');
@@ -283,6 +303,16 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
     } else {
       _selectedCategory = (categories.isNotEmpty) ? categories[0]['_id'] : '';
     }
+    String? _selectedType;
+    if (product != null) {
+      if (product['type'] is String) {
+        _selectedType = product['type'];
+      } else {
+        _selectedType = product['type']['\$oid'];
+      }
+    } else {
+      _selectedType = (types.isNotEmpty) ? types[0]['_id'] : '';
+    }
 
     // Reset picked images when opening the form.
     _pickedImages = null;
@@ -316,6 +346,21 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
                     );
                   }).toList(),
                   decoration: InputDecoration(labelText: 'Category'),
+                ),
+                DropdownButtonFormField<String>(
+                  value: _selectedType,
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedType = val;
+                    });
+                  },
+                  items: types.map((cat) {
+                    return DropdownMenuItem<String>(
+                      value: cat['_id'],
+                      child: Text(cat['name']),
+                    );
+                  }).toList(),
+                  decoration: InputDecoration(labelText: 'Types'),
                 ),
                 TextField(
                     controller: brandController,
@@ -403,6 +448,7 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
                   'name': nameController.text,
                   'description': descriptionController.text,
                   'category': _selectedCategory ?? '',
+                  'type': _selectedType ?? '',
                   'brand': brandController.text,
                   'original_price': int.tryParse(priceController.text) ?? 0,
                   'discount_percentage':
@@ -462,8 +508,9 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
               originalPrice - (originalPrice * discountPercentage / 100);
 
           // Get image URL from the first image in the list.
-          final imageUrl = getImageUrl(product['images']?[0] ?? '');
+          // final imageUrl = getImageUrl(product['images']?[0] ?? '');
 
+          final imageUrl = product['images']?[0] ?? '';
           return GestureDetector(
             onTap: () {
               // Optional: Navigate to a detailed product page if desired.

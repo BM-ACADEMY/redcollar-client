@@ -31,166 +31,178 @@ class OnboardingScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image:
-                AssetImage('assets/client.jpg'), // Replace with your image path
+            image: AssetImage('assets/client.jpg'),
             fit: BoxFit.fill,
           ),
         ),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Spacer for dynamic alignment
-              const Spacer(flex: 56),
-              Image.asset(
-                "assets/Rc.png",
-                height: 100.0, // Set height without 'px'
-                width: 100.0, // Set width without 'px'
-              ),
-
-              // App Title
-              const Text(
-                'Red Collar',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              // Spacer
-              const Spacer(),
-
-              // Sign-up Buttons
-              Column(
-                children: [
-                  RoundedButton(
-                    icon: Image.asset(
-                      "assets/G l.png",
-                      height: 24.0,
-                      width: 24.0,
+              // Part 1: Logo & Title
+              Expanded(
+                flex: 2, // Adjust flex as needed
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/Rc.png",
+                      height: 100.0,
+                      width: 100.0,
                     ),
-                    text: 'Sign up with Google',
-                    onPressed: () {
-                      debugPrint('Sign up with Google');
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  RoundedButton(
-                    icon: Image.asset(
-                      "assets/apple.png",
-                      height: 24.0,
-                      width: 24.0,
-                    ),
-                    text: 'Sign up with Apple',
-                    onPressed: () {
-                      debugPrint('Sign up with Apple');
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  RoundedButton(
-                    icon: Image.asset(
-                      "assets/facebook.png",
-                      height: 30.0,
-                      width: 30.0,
-                    ),
-                    text: 'Sign up with Facebook',
-                    onPressed: () {
-                      debugPrint('Sign up with Facebook');
-                    },
-                  ),
-                ],
-              ),
-
-              // Spacer between buttons and links
-              const Spacer(),
-
-              // Sign-in/Sign-up Links
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Sign ',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CreateAccountPage()),
-                      );
-                    },
-                    child: const Text(
-                      'up',
+                    const SizedBox(height: 16), // Proper spacing
+                    const Text(
+                      'Red Collar',
                       style: TextStyle(
-                        color: Colors.white,
+                        fontSize: 40,
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const Text(
-                    ' / ',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const LoginPage()),
-                      );
-                    },
-                    child: const Text(
-                      'in',
-                      style: TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
-              // Spacer
-              const Spacer(flex: 2),
+              // Part 2: Sign-up & Links
+              Expanded(
+                flex: 3, // Adjust flex to balance layout
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    RoundedButton(
+                      icon: Image.asset(
+                        "assets/G l.png",
+                        height: 24.0,
+                        width: 24.0,
+                      ),
+                      text: 'Sign up with Google',
+                      onPressed: () {
+                        debugPrint('Sign up with Google');
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    RoundedButton(
+                      icon: Image.asset(
+                        "assets/apple.png",
+                        height: 24.0,
+                        width: 24.0,
+                      ),
+                      text: 'Sign up with Apple',
+                      onPressed: () {
+                        debugPrint('Sign up with Apple');
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    RoundedButton(
+                      icon: Image.asset(
+                        "assets/facebook.png",
+                        height: 30.0,
+                        width: 30.0,
+                      ),
+                      text: 'Sign up with Facebook',
+                      onPressed: () {
+                        debugPrint('Sign up with Facebook');
+                      },
+                    ),
+                    const SizedBox(height: 24),
 
-              // Privacy Notice
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.1,
-                ),
-                child: RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    text: 'We collect data to improve your experience. ',
-                    style: const TextStyle(color: Colors.white),
-                    children: [
-                      TextSpan(
-                        text: 'Learn More',
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+                    // Sign-in/Sign-up Links
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Already have an account?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            debugPrint('Learn More tapped');
-                          },
+                        const SizedBox(
+                            height: 8), // Space between text and buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CreateAccountPage()),
+                                );
+                              },
+                              child: const Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const Text(
+                              ' / ',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const LoginPage()),
+                                );
+                              },
+                              child: const Text(
+                                'in',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 70),
+
+                    // Privacy Notice
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'We collect data to improve your experience. ',
+                          style: const TextStyle(color: Colors.white),
+                          children: [
+                            TextSpan(
+                              text: 'Learn More',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  debugPrint('Learn More tapped');
+                                },
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                  ],
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),

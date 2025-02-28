@@ -207,7 +207,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(20),
               ),
               margin: const EdgeInsets.all(20),
@@ -273,7 +273,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                               ),
                               icon: Image.asset(
                                 'assets/facebook.png',
-                                height: 24,
+                                height: 30,
                               ),
                               label: Text(
                                 'Continue with Facebook',
@@ -290,8 +290,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         const Text(
                           'Already have an account?',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
+                            color: Color(0xFFA7A09D),
+                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -307,9 +307,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                           child: const Text(
                             'Log in',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFFA7A09D),
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 14,
                             ),
                           ),
                         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/manage_categories.dart';
+import 'package:flutter_application_1/manage_types.dart';
 
 import 'admin_product_management_screen.dart';
 import 'manage_orders_screen.dart';
@@ -12,18 +14,17 @@ class AdminPanelScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Keep the background white for clean look
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Admin Panel',
           style: TextStyle(
-            color: Colors.black, // Black text for better visibility
+            color: Colors.black,
           ),
         ),
-        backgroundColor: Colors.white, // White background for app bar
-        iconTheme: const IconThemeData(
-            color: Colors.black), // Icons in black for consistency
-        elevation: 0, // No elevation for flat app bar
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -31,9 +32,9 @@ class AdminPanelScreen extends StatelessWidget {
           children: [
             Expanded(
               child: GridView.count(
-                crossAxisCount: 2, // Two items per row
-                crossAxisSpacing: 16, // Space between columns
-                mainAxisSpacing: 16, // Space between rows
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
                 children: [
                   _adminPanelCard(
                     context,
@@ -85,6 +86,31 @@ class AdminPanelScreen extends StatelessWidget {
                   ),
                   _adminPanelCard(
                     context,
+                    'Manage Categories',
+                    Icons.category,
+                    Colors.purple,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminCategoryScreen(),
+                      ),
+                    ),
+                  ),
+                  _adminPanelCard(
+                    context,
+                    'Manage Types', // New Item
+                    Icons.layers, // Chose an appropriate icon
+                    Colors.indigo, // Different color for distinction
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ManageTypesScreen(), // New screen
+                      ),
+                    ),
+                  ),
+                  _adminPanelCard(
+                    context,
                     'Settings',
                     Icons.settings,
                     Colors.orange,
@@ -104,7 +130,6 @@ class AdminPanelScreen extends StatelessWidget {
     );
   }
 
-  // A helper method to create each card for admin panel options
   Widget _adminPanelCard(
     BuildContext context,
     String title,
@@ -115,29 +140,28 @@ class AdminPanelScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        color: Colors.white, // White card background for consistency
+        color: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), // Rounded corners for cards
+          borderRadius: BorderRadius.circular(12),
         ),
-        elevation: 3, // Subtle shadow to create depth
+        elevation: 3,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 30, // Icon size and spacing
-              backgroundColor:
-                  color.withOpacity(0.1), // Light background for circle
-              child: Icon(icon, size: 40, color: color), // Icon with main color
+              radius: 30,
+              backgroundColor: color.withOpacity(0.1),
+              child: Icon(icon, size: 40, color: color),
             ),
-            const SizedBox(height: 12), // Space between icon and text
+            const SizedBox(height: 12),
             Text(
               title,
               style: TextStyle(
-                fontSize: 16, // Text size for the title
-                fontWeight: FontWeight.bold, // Bold text for titles
-                color: Colors.black, // Use black text for better readability
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-              textAlign: TextAlign.center, // Center align the text
+              textAlign: TextAlign.center,
             ),
           ],
         ),

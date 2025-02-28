@@ -126,230 +126,381 @@ class ManageUsersScreen extends StatefulWidget {
 class _ManageUsersScreenState extends State<ManageUsersScreen> {
   final String? baseUrl = dotenv.env['BASE_URL'];
   List<Map<String, dynamic>> users = [];
-
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  int currentPage = 1;
+  bool isLoading = false;
+  bool hasMore = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _getUsers();
+    _scrollController.addListener(_scrollListener);
   }
 
-  // ✅ Fetch Users
-  Future<void> _getUsers() async {
+  // ✅ GET USERS (Pagination & Infinite Scroll)
+  Future<void> _getUsers({bool refresh = false}) async {
+    if (isLoading || !hasMore) return;
+
+    if (refresh) {
+      setState(() {
+        users.clear();
+        currentPage = 1;
+        hasMore = true;
+      });
+    }
+
+    setState(() => isLoading = true);
+
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/users/fetch-all-users'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/fetch-all-users?page=$currentPage&limit=10'),
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> userData = json.decode(response.body);
+        final data = json.decode(response.body);
 
-        setState(() {
-          users = userData
-              .map((user) => {
-                    'id': user['_id'],
-                    'username': user['username'].toString(),
-                    'email': user['email'].toString(),
-                  })
-              .toList();
-        });
+        final List<dynamic> userData = data['users'];
+        // final int totalUsers = data['totalUsers'];
+        final int totalPages = data['totalPages'];
+
+        if (userData.isEmpty || currentPage > totalPages) {
+          setState(() => hasMore = false);
+        } else {
+          setState(() {
+            users.addAll(userData.map((user) => {
+                  'id': user['_id'].toString(),
+                  'username': user['username'].toString(),
+                  'email': user['email'].toString(),
+                  'phoneNumber': user['phoneNumber']?.toString() ?? '',
+                  'addressLine1': user['address']?['addressLine1'] ?? '',
+                  'addressLine2': user['address']?['addressLine2'] ?? '',
+                  'country': user['address']?['country'] ?? '',
+                  'state': user['address']?['state'] ?? '',
+                  'city': user['address']?['city'] ?? '',
+                  'pincode': user['address']?['pincode'] ?? '',
+                }));
+
+            currentPage++;
+            hasMore = currentPage <= totalPages; // Stop fetching if last page
+          });
+        }
       } else {
         throw Exception('Failed to load users');
       }
     } catch (e) {
       _showToast("Error fetching users: $e", Colors.red);
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  // ✅ Create User
-  Future<void> _createUser(
-      String username, String email, String password) async {
+  // ✅ POST (ADD NEW USER)
+  Future<void> _addUser(
+      String username, String email, String phoneNumber) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/register'),
+      Uri.parse('$baseUrl/users/addUser'),
       headers: {'Content-Type': 'application/json'},
-      body: json
-          .encode({'username': username, 'email': email, 'password': password}),
+      body: json.encode({
+        'username': username,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'address': {} // Empty initially
+      }),
     );
 
     if (response.statusCode == 201) {
-      _showToast("User created successfully", Colors.green);
-      Navigator.pop(context);
-      _getUsers();
+      _showToast("User added successfully", Colors.green);
+      _getUsers(refresh: true);
     } else {
-      _showToast("Error creating user", Colors.red);
+      _showToast("Error adding user", Colors.red);
     }
   }
 
-  // ✅ Update User
-  Future<void> _updateUser(String userId, String newEmail, String newPassword,
-      String newUsername) async {
+  // ✅ PUT (UPDATE USER DETAILS)
+  Future<void> _updateUser(
+      String userId, String email, String username, String phoneNumber) async {
     final response = await http.put(
       Uri.parse('$baseUrl/users/updateUserById/$userId'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': newEmail,
-        'password': newPassword,
-        'username': newUsername,
-      }),
+      body: json.encode(
+          {'email': email, 'username': username, 'phoneNumber': phoneNumber}),
     );
 
     if (response.statusCode == 200) {
       _showToast("User updated successfully", Colors.green);
       Navigator.pop(context);
-      _getUsers();
+      _getUsers(refresh: true);
     } else {
       _showToast("Error updating user", Colors.red);
     }
   }
 
-  // ✅ Delete User
+  // ✅ DELETE USER
   Future<void> _deleteUser(String userId) async {
     final response =
-        await http.delete(Uri.parse('$baseUrl/users/deleteUserById/$userId'));
+        await http.delete(Uri.parse('$baseUrl/users/deleteUser/$userId'));
 
     if (response.statusCode == 200) {
       _showToast("User deleted successfully", Colors.green);
-      _getUsers();
+      setState(() {
+        users.removeWhere((user) => user['id'] == userId);
+      });
     } else {
       _showToast("Error deleting user", Colors.red);
     }
   }
 
-  // ✅ Show Toast Message
-  void _showToast(String message, Color color) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: color,
-      textColor: Colors.white,
-    );
+  // ✅ Infinite Scroll Listener
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.95) {
+      _getUsers();
+    }
   }
 
-  // ✅ Show Dialog to Create User
-  void _showCreateUserDialog() {
-    _emailController.clear();
-    _passwordController.clear();
-    _usernameController.clear();
+  // ✅ Show Add User Popup
+  void _showAddUserDialog() {
+    TextEditingController usernameController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
+    TextEditingController phoneController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Create User"),
+        title: const Text("Add User"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: _usernameController,
+                controller: usernameController,
                 decoration: const InputDecoration(labelText: "Username")),
             TextField(
-                controller: _emailController,
+                controller: emailController,
                 decoration: const InputDecoration(labelText: "Email")),
             TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: "Password"),
-                obscureText: true),
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: "Phone Number")),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () => _createUser(_usernameController.text,
-                _emailController.text, _passwordController.text),
-            child: const Text("Create"),
+            onPressed: () {
+              _addUser(usernameController.text, emailController.text,
+                  phoneController.text);
+              Navigator.pop(context);
+            },
+            child: const Text("Add"),
           ),
         ],
       ),
     );
   }
 
-  // ✅ Show Dialog to Update User
-  void _showUpdateUserDialog(
-      String userId, String oldEmail, String oldUsername) {
-    final TextEditingController newEmailController =
-        TextEditingController(text: oldEmail);
-    final TextEditingController newUsernameController =
-        TextEditingController(text: oldUsername);
-    final TextEditingController passwordController = TextEditingController();
+  // ✅ Show Toast
+  void _showToast(String message, Color color) {
+    Fluttertoast.showToast(
+        msg: message, backgroundColor: color, textColor: Colors.white);
+  }
+
+  void _showAddressDialog(Map<String, dynamic> user) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Address of ${user['username']}"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Address Line 1: ${user['addressLine1']}"),
+            Text("Address Line 2: ${user['addressLine2']}"),
+            Text("City: ${user['city']}"),
+            Text("State: ${user['state']}"),
+            Text("Country: ${user['country']}"),
+            Text("Pincode: ${user['pincode']}"),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close")),
+        ],
+      ),
+    );
+  }
+
+  void _showEditUserDialog(Map<String, dynamic> user) {
+    TextEditingController usernameController =
+        TextEditingController(text: user['username']?.toString() ?? '');
+    TextEditingController emailController =
+        TextEditingController(text: user['email']?.toString() ?? '');
+    TextEditingController phoneController =
+        TextEditingController(text: user['phoneNumber']?.toString() ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Update User"),
+        title: const Text("Edit User"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: newUsernameController,
-                decoration: const InputDecoration(labelText: "New Username")),
+                controller: usernameController,
+                decoration: const InputDecoration(labelText: "Username")),
             TextField(
-                controller: newEmailController,
-                decoration: const InputDecoration(labelText: "New Email")),
+                controller: emailController,
+                decoration: const InputDecoration(labelText: "Email")),
             TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: "New Password"),
-                obscureText: true),
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: "Phone Number")),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () => _updateUser(userId, newEmailController.text,
-                passwordController.text, newUsernameController.text),
-            child: const Text("Update"),
+            onPressed: () {
+              _updateUser(user['id'].toString(), emailController.text,
+                  usernameController.text, phoneController.text);
+            },
+            child: const Text("Save"),
           ),
         ],
       ),
     );
   }
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Manage Users'), backgroundColor: Colors.blue),
+        title: const Text('Manage Users'),
+        backgroundColor: Colors.blue,
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateUserDialog,
+        onPressed: () => _showEditUserDialog({}),
         child: const Icon(Icons.add),
       ),
-      body: users.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  elevation: 4,
-                  child: ListTile(
-                    title: Text('Username: ${user['username']}'),
-                    subtitle: Text('Email: ${user['email']}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+      body: Scrollbar(
+        thickness: 6,
+        radius: const Radius.circular(10),
+        thumbVisibility: true,
+        controller: _scrollController,
+        child: ListView.builder(
+          controller: _scrollController,
+          itemCount: users.length + (isLoading ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == users.length) {
+              return isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : const SizedBox();
+            }
+
+            final user = users[index];
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    blurRadius: 6,
+                    spreadRadius: 2,
+                    offset: const Offset(2, 4),
+                  )
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Details
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Username: ${user['username'] ?? 'N/A'}',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Email: ${user['email'] ?? 'N/A'}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showUpdateUserDialog(
-                              user['id'], user['email'], user['username']),
+                        Text(
+                          'Phone: ${user['phoneNumber'] ?? 'N/A'}',
+                          style: const TextStyle(fontSize: 14),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteUser(user['id']),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () {
+                            // Handle info icon click (Show details, tooltip, or action)
+                          },
+                          child: const Icon(
+                            Icons.info_outline,
+                            color: Colors.blue,
+                            size: 18,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
+
+                  const SizedBox(height: 10),
+
+                  // Action Icons Row with Transparent Background
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _iconButton(
+                        Icons.location_on,
+                        Colors.blue,
+                        () => _showAddressDialog(user),
+                      ),
+                      _iconButton(
+                        Icons.edit,
+                        Colors.orange,
+                        () => _showEditUserDialog(user),
+                      ),
+                      _iconButton(
+                        Icons.delete,
+                        Colors.red,
+                        () => _deleteUser(user['id'] ?? ''),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Custom Icon Button with Transparent Black Background
+  Widget _iconButton(IconData icon, Color color, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.2), // More visible transparency
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: 24),
+      ),
     );
   }
 }

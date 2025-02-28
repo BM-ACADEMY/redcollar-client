@@ -118,14 +118,118 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
     }
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   bool isResetPassword = widget.token != null; // Check if token exists
+
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: Text(isResetPassword ? 'Reset Password' : 'Forgot Password'),
+  //       backgroundColor: Colors.black,
+  //     ),
+  //     body: Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //         children: [
+  //           Text(
+  //             isResetPassword
+  //                 ? 'Enter your new password.'
+  //                 : 'Enter your email to reset your password.',
+  //             style: TextStyle(fontSize: 20, color: Colors.black),
+  //           ),
+  //           const SizedBox(height: 30),
+
+  //           // ✅ Forgot Password UI
+  //           if (!isResetPassword)
+  //             Column(
+  //               children: [
+  //                 TextField(
+  //                   controller: _emailController,
+  //                   decoration: const InputDecoration(
+  //                     labelText: 'Email',
+  //                     hintText: 'Enter your email',
+  //                     border: OutlineInputBorder(),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 20),
+  //                 ElevatedButton(
+  //                   onPressed: _isLoading ? null : _sendResetEmail,
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.black,
+  //                     padding: const EdgeInsets.symmetric(vertical: 15),
+  //                     shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(30),
+  //                     ),
+  //                   ),
+  //                   child: _isLoading
+  //                       ? const CircularProgressIndicator(color: Colors.white)
+  //                       : const Text('Send Reset Link',
+  //                           style: TextStyle(color: Colors.white)),
+  //                 ),
+  //               ],
+  //             ),
+
+  //           // ✅ Reset Password UI
+  //           if (isResetPassword)
+  //             Column(
+  //               children: [
+  //                 TextField(
+  //                   controller: _passwordController,
+  //                   obscureText: true,
+  //                   decoration: const InputDecoration(
+  //                     labelText: 'New Password',
+  //                     hintText: 'Enter your new password',
+  //                     border: OutlineInputBorder(),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 20),
+  //                 TextField(
+  //                   controller: _confirmPasswordController,
+  //                   obscureText: true,
+  //                   decoration: const InputDecoration(
+  //                     labelText: 'Confirm Password',
+  //                     hintText: 'Re-enter your new password',
+  //                     border: OutlineInputBorder(),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 20),
+  //                 ElevatedButton(
+  //                   onPressed: _isLoading ? null : _resetPassword,
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: Colors.black,
+  //                     padding: const EdgeInsets.symmetric(vertical: 15),
+  //                     shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(30),
+  //                     ),
+  //                   ),
+  //                   child: _isLoading
+  //                       ? const CircularProgressIndicator(color: Colors.white)
+  //                       : const Text('Reset Password',
+  //                           style: TextStyle(color: Colors.white)),
+  //                 ),
+  //               ],
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
     bool isResetPassword = widget.token != null; // Check if token exists
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isResetPassword ? 'Reset Password' : 'Forgot Password'),
-        backgroundColor: Colors.black,
+        title: Text(
+          isResetPassword ? 'Reset Password' : 'Forgot Password',
+          style: TextStyle(color: Colors.black, fontSize: 16), // Black text
+        ),
+        backgroundColor: Colors.white, // White background
+        elevation: 4, // Shadow effect
+        shadowColor: Colors.black26, // Light black shadow
+        iconTheme: IconThemeData(color: Colors.black), // Black back button
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -136,7 +240,7 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
               isResetPassword
                   ? 'Enter your new password.'
                   : 'Enter your email to reset your password.',
-              style: TextStyle(fontSize: 20, color: Colors.black),
+              style: TextStyle(fontSize: 14, color: Colors.black),
             ),
             const SizedBox(height: 30),
 
@@ -157,10 +261,13 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
                     onPressed: _isLoading ? null : _sendResetEmail,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.all(10), // Padding 10
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius:
+                            BorderRadius.circular(50), // Border radius 50
                       ),
+                      minimumSize:
+                          Size(double.infinity, 50), // Full width button
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
@@ -198,10 +305,13 @@ class _ForgotResetPasswordPageState extends State<ForgotResetPasswordPage> {
                     onPressed: _isLoading ? null : _resetPassword,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.all(10), // Padding 10
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius:
+                            BorderRadius.circular(50), // Border radius 50
                       ),
+                      minimumSize:
+                          Size(double.infinity, 50), // Full width button
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)

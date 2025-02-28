@@ -700,17 +700,19 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.brown),
+        elevation: 4, // Increased elevation for shadow effect
+        shadowColor: Colors.black26, // Soft shadow color
+        iconTheme: const IconThemeData(color: Colors.black),
         title: const Text(
           'My Cart',
           style: TextStyle(
-            color: Colors.brown,
-            fontSize: 24,
+            color: Colors.black,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : cartItems.isEmpty
@@ -739,6 +741,7 @@ class _CartScreenState extends State<CartScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Card(
+        color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 3,
         child: Padding(
@@ -750,7 +753,8 @@ class _CartScreenState extends State<CartScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
-                  imageUrl: getImageUrl(item['product']['images'][0]),
+                  // imageUrl: getImageUrl(item['product']['images'][0]),
+                  imageUrl: item['product']['images'][0],
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -822,7 +826,7 @@ class _CartScreenState extends State<CartScreen> {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.remove_circle,
-                                  color: Colors.grey),
+                                  color: Colors.black),
                               onPressed: () {
                                 if (item['quantity'] > 1) {
                                   _updateCartQuantity(
@@ -836,7 +840,7 @@ class _CartScreenState extends State<CartScreen> {
                                 style: const TextStyle(fontSize: 16)),
                             IconButton(
                               icon: const Icon(Icons.add_circle,
-                                  color: Colors.brown),
+                                  color: Colors.black),
                               onPressed: () {
                                 _updateCartQuantity(
                                     item['_id'], item['quantity'] + 1);
@@ -874,30 +878,44 @@ class _CartScreenState extends State<CartScreen> {
           _buildPriceRow('Discount', '-₹${discount.toStringAsFixed(2)}'),
           _buildPriceRow('Total', '₹${total.toStringAsFixed(2)}', isBold: true),
 
-          // Checkout Button
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to CheckoutScreen with the required arguments
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CheckoutScreen(
-                    cart: cartItems, // Pass the cart items
-                    subtotal: subtotal, // Pass the subtotal
-                    discount: discount, // Pass the discount
-                    total: total, // Pass the total
-                  ),
-                ),
-              );
-            },
-            child: const Text('Proceed to Checkout'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              backgroundColor: Colors.blue,
-              textStyle:
-                  const TextStyle(fontSize: 16), // Customize button color
+          const SizedBox(height: 16), // Spacing before button
+
+          // Gradient Checkout Button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black, // Black background
+              borderRadius: BorderRadius.circular(20), // Rounded corners
             ),
-          ),
+            child: ElevatedButton(
+              onPressed: () {
+                // Navigate to CheckoutScreen with the required arguments
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CheckoutScreen(
+                      cart: cartItems, // Pass the cart items
+                      subtotal: subtotal, // Pass the subtotal
+                      discount: discount, // Pass the discount
+                      total: total, // Pass the total
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black, // Black background
+                foregroundColor: Colors.white, // White text
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50), // 20px border radius
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10), // Padding 10px
+              ),
+              child: const Text(
+                'Proceed to Checkout',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+            ),
+          )
         ],
       ),
     );

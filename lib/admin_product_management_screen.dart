@@ -189,8 +189,9 @@ class _AdminProductScreenState extends State<AdminProductScreen> {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              final imageUrl =
-                  getImageUrl(category['images']); // ✅ Fetch Image URL
+              // final imageUrl =
+              //     getImageUrl(category['images']);
+              final imageUrl = category['images'];
 
               return Card(
                 margin: const EdgeInsets.all(8.0),
@@ -229,8 +230,8 @@ class _AdminProductScreenState extends State<AdminProductScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      backgroundColor: Colors.black,
+                      padding: const EdgeInsets.all(10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

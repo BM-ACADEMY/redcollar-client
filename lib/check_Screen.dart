@@ -391,7 +391,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 //     );
 //   }
 // }
-
+  bool isPaymentSuccess = false;
+  bool isPaymentFailed = false;
+  String errorMessage = '';
   Future<void> _createOrder() async {
     final String orderApiUrl = '$baseUrl/orders/create-order';
     try {
@@ -406,14 +408,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }),
       );
       if (response.statusCode == 201) {
+        setState(() {
+          isPaymentSuccess = true;
+          isPaymentFailed = false;
+        });
         final responseData = jsonDecode(response.body);
         _openRazorpayCheckout(responseData['razorpayOrder'],
             responseData['user'], responseData['order']);
       } else {
+        setState(() {
+          isPaymentSuccess = false;
+          isPaymentFailed = true;
+          errorMessage = 'Failed to confirm payment. Please contact support.';
+        });
         print('Failed to create order: ${response.body}');
       }
     } catch (e) {
       print('Error creating order: $e');
+      isPaymentSuccess = false;
+      isPaymentFailed = true;
+      errorMessage = 'Error confirming payment: $e';
     }
   }
 
@@ -472,6 +486,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentError(PaymentFailureResponse response) {
     print("Payment failed: ${response.message}");
+    setState(() {
+      isPaymentSuccess = false;
+      isPaymentFailed = true;
+      errorMessage = response.message ?? "Payment failed. Please try again.";
+    });
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
@@ -510,70 +529,198 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Checkout')),
-      body: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: () {
-          if (_currentStep == 0 &&
-              (_selectedAddressId != null || _addingNewAddress)) {
-            setState(() {
-              _currentStep++;
-            });
-          } else if (_currentStep == 1) {
-            _createOrder();
-            setState(() {
-              _currentStep++;
-            });
-          } else if (_currentStep == 2) {
-            // Proceed to the confirmation step
-            _updateOrderStatus('Order Confirmed');
-            setState(() {
-              _currentStep++;
-            });
-          }
-        },
-        steps: [
-          Step(
-            title: Text('Address'),
-            content: _addingNewAddress
-                ? _buildNewAddressForm()
-                : _buildSavedAddressSelection(),
-            isActive: _currentStep >= 0,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Checkout',
+          style: TextStyle(fontSize: 16, color: Colors.black),
+        ),
+        elevation: 0, // Remove default shadow
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0), // Height of the border
+          child: Container(
+            color: Colors.grey.shade300, // Border color
+            height: 1.0, // Border thickness
           ),
-          Step(
-            title: Text('Payment'),
-            content: ElevatedButton(
-              onPressed: () {
-                _createOrder();
-                setState(() {
-                  _currentStep++;
-                });
-              },
-              child: Text('Pay Amount'),
-            ),
-            isActive: _currentStep >= 1,
+        ),
+      ),
+      backgroundColor: Colors.white,
+      body: Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: Colors.red, // Active step background color
+            onPrimary: Colors.white, // Active step text/icon color
+            secondary: Colors.black, // Inactive step color
           ),
-          Step(
-            title: Text('Order Confirmation'),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        ),
+        child: Stepper(
+          currentStep: _currentStep,
+          type: StepperType.vertical, // Change to horizontal if needed
+          onStepContinue: () {
+            if (_currentStep == 0 &&
+                (_selectedAddressId != null || _addingNewAddress)) {
+              setState(() {
+                _currentStep++;
+              });
+            } else if (_currentStep == 1) {
+              _createOrder();
+              setState(() {
+                _currentStep++;
+              });
+            } else if (_currentStep == 2) {
+              _updateOrderStatus('Order Confirmed');
+              setState(() {
+                _currentStep++;
+              });
+            }
+          },
+          onStepCancel: () {
+            if (_currentStep > 0) {
+              setState(() {
+                _currentStep--;
+              });
+            }
+          },
+          controlsBuilder: (BuildContext context, ControlsDetails details) {
+            return Row(
+              children: <Widget>[
+                // Next Button
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OrderConfirmationPage(),
-                      ),
-                    );
-                  },
-                  child: Text('Proceed to Order Confirmation'),
+                  onPressed: details.onStepContinue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black, // Black background
+                    foregroundColor: Colors.white, // White text
+                    disabledBackgroundColor:
+                        Colors.black.withOpacity(0.3), // Opacity when disabled
+                    disabledForegroundColor: Colors.white
+                        .withOpacity(0.5), // Text opacity when disabled
+                  ),
+                  child: const Text('Next'),
+                ),
+                const SizedBox(width: 10),
+
+                // Back Button
+                OutlinedButton(
+                  onPressed: _currentStep > 0 ? details.onStepCancel : null,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                        color: Colors.black, width: 2), // Black outline
+                    backgroundColor: Colors.white, // White background
+                    foregroundColor: Colors.black, // Black text
+                  ),
+                  child: const Text('Back'),
                 ),
               ],
+            );
+          },
+          steps: [
+            Step(
+              title: const Text('Address'),
+              content: _addingNewAddress
+                  ? _buildNewAddressForm()
+                  : _buildSavedAddressSelection(),
+              isActive: _currentStep >= 0,
+              state: _currentStep == 0 ? StepState.complete : StepState.indexed,
             ),
-            isActive: _currentStep >= 2,
-          ),
-        ],
+            Step(
+              title: const Text('Payment'),
+              content: ElevatedButton(
+                onPressed: () {
+                  _createOrder();
+                  setState(() {
+                    _currentStep++;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                ),
+                child: const Text(
+                  'Pay Amount',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              isActive: _currentStep >= 1,
+              state: _currentStep == 1 ? StepState.complete : StepState.indexed,
+            ),
+            Step(
+              title: const Text('Order Confirmation'),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isPaymentSuccess) // Show success message
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: Colors.green, size: 24),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: const Text(
+                              '✅ Your payment was successful! Check your Order ID in your profile dashboard.',
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (isPaymentFailed) // Show error message
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error, color: Colors.red, size: 24),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '❌ $errorMessage',
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: isPaymentSuccess
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderConfirmationPage(),
+                              ),
+                            );
+                          }
+                        : null, // Disable button if payment failed
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isPaymentSuccess
+                          ? Colors.black
+                          : Colors.grey, // Disable button on failure
+                    ),
+                    child: const Text(
+                      'Proceed to Order Confirmation',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              isActive: _currentStep >= 2,
+              state: _currentStep == 2 ? StepState.complete : StepState.indexed,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -596,14 +743,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               );
             }).toList(),
           ),
-        TextButton(
+        TextButton.icon(
           onPressed: () {
             setState(() {
               _addingNewAddress = true;
             });
           },
-          child: const Text('Add New Address'),
-        ),
+          icon: const Icon(Icons.add, color: Colors.black), // Add icon
+          label: const Text(
+            'Add New Address',
+            style: TextStyle(color: Colors.black),
+          ),
+        )
       ],
     );
   }

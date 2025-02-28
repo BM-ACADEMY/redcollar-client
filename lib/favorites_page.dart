@@ -185,6 +185,7 @@ import 'provider/userProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'favorites_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({Key? key}) : super(key: key);
@@ -194,7 +195,7 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  final String baseUrl = "http://10.0.2.2:6000/api";
+  final String? baseUrl = dotenv.env['BASE_URL'];
   late Future<List<Map<String, dynamic>>> categoriesFuture;
   late Future<List<dynamic>> favoritesFuture;
 
@@ -211,10 +212,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
     userId = userProvider.userId;
-
-    // Only call the fetchFavoriteProducts() once userId is set
-    favoritesFuture =
-        fetchFavoriteProducts(); // Ensure this is called only after userId is initialized
+    favoritesFuture = fetchFavoriteProducts();
   }
 
   Future<List<Map<String, dynamic>>> fetchCategories() async {
@@ -239,12 +237,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-
-        // Debugging to inspect the returned response
         print('Response Data: ${jsonData['data']}');
 
         if (jsonData['data'] != null) {
-          // Ensure the response data is a list
           if (jsonData['data'] is List) {
             return List<dynamic>.from(jsonData['data']);
           } else {
@@ -257,7 +252,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
         throw Exception('Failed to load favorites');
       }
     } catch (e) {
-      print('Error: $e'); // Debugging the error message
+      print('Error: $e');
       throw Exception('Failed to load favorites: $e');
     }
   }
@@ -265,24 +260,20 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Future<void> removeFavorite(String productId) async {
     try {
       final response = await http.delete(
-        Uri.parse(
-            '$baseUrl/linkedproducts/delete-favorite'), // Correct API endpoint
+        Uri.parse('$baseUrl/linkedproducts/delete-favorite'),
         headers: <String, String>{
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'productId': productId, // Product ID to be removed
-          'userId': userId, // User ID who is removing the favorite
+          'productId': productId,
+          'userId': userId,
         }),
       );
 
       if (response.statusCode == 200) {
         print('Favorite removed successfully');
-
-        // Once the favorite is removed, call fetchFavoriteProducts to update the list
         setState(() {
-          favoritesFuture =
-              fetchFavoriteProducts(); // Re-fetch favorite products
+          favoritesFuture = fetchFavoriteProducts();
         });
       } else {
         print('Failed to remove favorite');
@@ -292,10 +283,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     }
   }
 
-  Future<void> addFavorite(Map<String, dynamic> item) async {
-    // Your code to add a favorite (it will need a proper API endpoint)
-    // You can follow the same logic used for `removeFavorite`
-  }
+  Future<void> addFavorite(Map<String, dynamic> item) async {}
 
   @override
   Widget build(BuildContext context) {
@@ -306,15 +294,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Favorites',
-              style:
-                  TextStyle(color: Colors.brown, fontWeight: FontWeight.bold)),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
           backgroundColor: Colors.white,
-          foregroundColor: Colors.brown,
+          foregroundColor: Colors.black,
           elevation: 0,
           bottom: const TabBar(
-            indicatorColor: Colors.brown,
-            indicatorWeight: 3,
-            labelColor: Colors.brown,
+            indicatorColor: Color(0xFFFE0000),
+            indicatorWeight: 4,
+            labelColor: Colors.black,
             unselectedLabelColor: Colors.grey,
             tabs: [
               Tab(text: 'All Category'),
@@ -345,22 +335,24 @@ class _FavoritesPageState extends State<FavoritesPage> {
         }
 
         final categories = snapshot.data!;
-        return GridView.builder(
+        return ListView.builder(
           padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 3 / 4,
-          ),
           itemCount: categories.length,
           itemBuilder: (context, index) {
             final category = categories[index];
-            final imageUrl = category['images'] != null &&
-                    category['images'].isNotEmpty
-                ? '$baseUrl/category/fetch-category-image/${category['images'].split('/').last}'
-                : ''; // Handle missing images
-            return _buildProductCard(context, category, imageUrl, false);
+            // final imageUrl = category['images'] != null &&
+            //         category['images'].isNotEmpty
+            //     ? '$baseUrl/category/fetch-category-image/${category['images'].split('/').last}'
+            //     : '';
+
+            final imageUrl =
+                category['images'] != null && category['images'].isNotEmpty
+                    ? category['images']
+                    : '';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16), // Space between items
+              child: _buildCategoryCard(context, category, imageUrl),
+            );
           },
         );
       },
@@ -377,87 +369,247 @@ class _FavoritesPageState extends State<FavoritesPage> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
-              child: Text('No favorites yet!',
-                  style: TextStyle(fontSize: 18, color: Colors.grey)));
+            child: Text(
+              'No favorites yet!',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          );
         }
 
         final favorites = snapshot.data!;
-        return GridView.builder(
+        return ListView.builder(
           padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 3 / 4,
-          ),
           itemCount: favorites.length,
           itemBuilder: (context, index) {
             final favorite = favorites[index];
-            final product = favorite['productId']; // productId is an object
-            final productId =
-                product['_id']; // Access the _id field using the correct key
+            final product = favorite['productId'];
 
-            // Check if product and images are not null or empty
-            final imageUrl = product['images'] != null &&
-                    product['images'].isNotEmpty
-                ? '$baseUrl/products/fetch-product-image/${product['images'][0].split('/').last}'
-                : ''; // Fallback to empty string if images is not valid or empty
+            // Ensure product and images are not null or empty
+            // final imageUrl = product['images'] != null &&
+            //         product['images'].isNotEmpty
+            //     ? '$baseUrl/products/fetch-product-image/${product['images'][0].split('/').last}'
+            //     : '';
 
-            return _buildProductCard(context, product, imageUrl, true);
+            final imageUrl =
+                product['images'] != null && product['images'].isNotEmpty
+                    ? product['images'][0]
+                    : '';
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildFavoriteCard(context, product, imageUrl),
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildProductCard(BuildContext context, Map<String, dynamic> item,
-      String imageUrl, bool isFavorite) {
-    final favoritesProvider =
-        Provider.of<FavoritesProvider>(context, listen: false);
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      clipBehavior: Clip.antiAlias,
-      elevation: 4,
-      child: Stack(
-        children: [
-          imageUrl.isNotEmpty
-              ? Image.network(imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity)
-              : const Center(
-                  child: Icon(Icons.image,
-                      size: 50,
-                      color: Colors.grey)), // Placeholder for missing image
-          Positioned(
-            bottom: 16,
-            left: 16,
-            child: Text(item['name'],
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
+  Widget _buildCategoryCard(
+      BuildContext context, Map<String, dynamic> category, String imageUrl) {
+    return Stack(
+      children: [
+        // Category Image Container
+        Container(
+          height: 160, // Fixed height for category card
+          width: double.infinity,
+          // margin: const EdgeInsets.only(left: 30), // Offset 30px from left
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            image: imageUrl.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                : null,
+            color: Colors.grey[300],
           ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
-              color: isFavorite ? Colors.red : Colors.grey,
-              onPressed: () async {
-                final productId = item['_id']; // Product ID
+        ),
 
-                if (isFavorite) {
-                  await removeFavorite(productId); // Remove favorite
-                } else {
-                  await addFavorite(item); // Add favorite
-                }
-              },
+        // Name Overlay with Vertical Text
+        Positioned(
+          top: 0,
+          bottom: 0,
+          left: 0, // Overlay sticks to left edge
+          child: Container(
+            width: 80, // Fixed width for overlay
+            decoration: BoxDecoration(
+              color:
+                  Color(0xFF83807A).withOpacity(0.6), // Semi-transparent black
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: RotatedBox(
+              quarterTurns: 3, // Rotate text vertically (bottom to top)
+              child: Text(
+                category['name'] ?? "Category",
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFavoriteCard(
+      BuildContext context, Map<String, dynamic> product, String imageUrl) {
+    // Calculate final price after discount
+    double originalPrice = product['original_price']?.toDouble() ?? 0;
+    double discountPercentage = product['discount_percentage']?.toDouble() ?? 0;
+    double finalPrice =
+        originalPrice - (originalPrice * (discountPercentage / 100));
+
+    return Stack(
+      children: [
+        // Card Container
+        Container(
+          height: 100,
+          width: double.infinity,
+          margin: const EdgeInsets.only(left: 10), // 10px left border offset
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10), // Image border radius
+            color: Colors.white,
+            border: Border(
+              left: BorderSide(
+                  color: Color(0xFFFE0000), width: 10), // Left side border
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 5,
+                spreadRadius: 2,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Product Image
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
+                ),
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        width: 120,
+                        height: 160,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        width: 120,
+                        height: 160,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.image, color: Colors.white),
+                      ),
+              ),
+
+              const SizedBox(width: 10), // Gap of 3px between image and text
+
+              // Product Details
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Product Name & Brand
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product['name'] ?? "Product Name",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            product['brand'] ?? "Brand",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Price & Discounted Price
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Final Price (on top)
+                          Text(
+                            '₹${finalPrice.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(
+                              height: 3), // Small spacing between prices
+
+                          // Original Price + Discount Percentage (in a row)
+                          Row(
+                            children: [
+                              Text(
+                                '₹${originalPrice.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '-${discountPercentage.toInt()}%',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFFE0000),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Favorite Icon in Top Right Corner
+        Positioned(
+          top: 10,
+          right: 10,
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            padding: const EdgeInsets.all(5),
+            child: const Icon(
+              Icons.favorite,
+              color: Color(0xFFFE0000),
+              size: 20,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -94,8 +94,9 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-              'Order Confirmation get order id from user profile order page')),
+        title: Text('Order Confirmation page'),
+        titleTextStyle: TextStyle(fontSize: 16, color: Colors.black),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -103,22 +104,64 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
           children: [
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(labelText: 'Enter Email'),
+              decoration: InputDecoration(
+                labelText: 'Enter Email',
+                labelStyle:
+                    TextStyle(color: Colors.black), // Label color set to black
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Rounded corners
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(10), // Keep the same border radius
+                  borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2), // Black border when focused
+                ),
+              ),
             ),
             SizedBox(height: 10),
             TextField(
               controller: _orderIdController,
-              decoration: InputDecoration(labelText: 'Enter Order ID'),
+              decoration: InputDecoration(
+                labelText: 'Enter Order ID',
+                labelStyle:
+                    TextStyle(color: Colors.black), // Label color set to black
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Rounded corners
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(10), // Keep the same border radius
+                  borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2), // Black border when focused
+                ),
+              ),
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _fetchOrderStatus,
-              child: Text('Get Details'),
+            SizedBox(
+              width: double.infinity, // Full width
+              child: ElevatedButton(
+                onPressed: _fetchOrderStatus,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black, // Black background
+                  foregroundColor: Colors.white, // White text
+                  padding: EdgeInsets.symmetric(vertical: 10), // Padding 10px
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50), // Rounded corners
+                  ),
+                ),
+                child: Text(
+                  'Get Details',
+                ),
+              ),
             ),
             SizedBox(height: 20),
             Text(
               _orderStatus,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
             _showSteps
