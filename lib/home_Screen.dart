@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'product_details.dart';
 import 'dart:math';
+import 'dart:ui';
 
 class HomeScreen extends StatefulWidget {
   final String username;
@@ -926,18 +927,28 @@ class _HomeContent extends StatelessWidget {
       future: fetchTypes(),
       builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Failed to load types'));
+          return const Center(child: Text('Failed to load types'));
         } else {
           final types = snapshot.data ?? [];
+          final List<CustomClipper<Path>> clippers = [
+            EllipticalClipper(),
+            CircleClipper(),
+            CircleClipper(),
+            CircleClipper(),
+          ];
 
           return Column(
-            children: types.map((type) {
+            children: types.asMap().entries.map((entry) {
+              int index = entry.key;
+              var type = entry.value;
               int randomPrice = Random().nextInt(3001) + 2000;
+              CustomClipper<Path> clipper = clippers[index % clippers.length];
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -949,94 +960,101 @@ class _HomeContent extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Container(
-                    width: double.infinity,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 5,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        // Full-width and full-height background image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            type['image'] ?? 'https://via.placeholder.com/250',
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        // Black transparent overlay
-                        Container(
-                          width: double.infinity,
-                          height: double.infinity,
+                  child: Stack(
+                    clipBehavior:
+                        Clip.none, // Allows shapes to go outside bounds
+                    children: [
+                      // 🌟 Main Big Shape 🌟
+                      ClipPath(
+                        clipper: clipper,
+                        child: Container(
+                          height: 450,
+                          width: 400,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(10),
+                            gradient: LinearGradient(
+                              colors: [Colors.black, Colors.red],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        // Positioned text and price
-                        Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                      ),
+
+                      // 🎨 Small Randomly Positioned Shapes 🎨
+                      for (int i = 0; i < 5; i++) _buildWaterBubbleShape(),
+
+                      // 🖼 Image & Overlay
+                      Positioned(
+                        top: 5,
+                        left: 2,
+                        right: 2,
+                        bottom: 2,
+                        child: ClipPath(
+                          clipper: clipper,
+                          child: Stack(
                             children: [
-                              // Title
-                              Text(
-                                type['name'] ?? 'No Name',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.right,
+                              Image.network(
+                                type['image'] ??
+                                    'https://via.placeholder.com/250',
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
                               ),
-                              // Description
-                              Text(
-                                type['description'] ??
-                                    'No description available',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.right,
-                              ),
-                              // Price overlay at bottom right
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(5),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.7),
+                                      Colors.transparent,
+                                    ],
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
                                   ),
-                                  child: Text(
-                                    "₹$randomPrice",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      type['name'] ?? 'No Name',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        fontFamily: 'Lobster',
+                                      ),
                                     ),
-                                  ),
+                                    Text(
+                                      type['description'] ?? 'No description',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                        fontFamily: 'Raleway',
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      "₹$randomPrice",
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        fontFamily: 'Montserrat',
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -1073,4 +1091,210 @@ class _HomeContent extends StatelessWidget {
       ),
     );
   }
+}
+
+// class EllipticalClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     Path path = Path();
+//     path.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+// }
+
+// class CurvedRectangleClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     Path path = Path();
+//     path.moveTo(0, size.height * 0.1);
+//     path.quadraticBezierTo(size.width * 0.5, 0, size.width, size.height * 0.1);
+//     path.lineTo(size.width, size.height * 0.9);
+//     path.quadraticBezierTo(size.width * 0.5, size.height, 0, size.height * 0.9);
+//     path.close();
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+// }
+
+// class SoftEdgeRectangleClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     Path path = Path();
+//     path.moveTo(10, 0);
+//     path.lineTo(size.width - 10, 0);
+//     path.quadraticBezierTo(size.width, 10, size.width, 20);
+//     path.lineTo(size.width, size.height - 20);
+//     path.quadraticBezierTo(
+//         size.width, size.height - 10, size.width - 10, size.height);
+//     path.lineTo(10, size.height);
+//     path.quadraticBezierTo(0, size.height - 10, 0, size.height - 20);
+//     path.lineTo(0, 20);
+//     path.quadraticBezierTo(0, 10, 10, 0);
+//     path.close();
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+// }
+class CurvedRectangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.moveTo(0, size.height * 0.1);
+    path.quadraticBezierTo(size.width * 0.5, 0, size.width, size.height * 0.1);
+    path.lineTo(size.width, size.height * 0.9);
+    path.quadraticBezierTo(size.width * 0.5, size.height, 0, size.height * 0.9);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class SoftEdgeRectangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.moveTo(10, 0);
+    path.lineTo(size.width - 10, 0);
+    path.quadraticBezierTo(size.width, 10, size.width, 20);
+    path.lineTo(size.width, size.height - 20);
+    path.quadraticBezierTo(
+        size.width, size.height - 10, size.width - 10, size.height);
+    path.lineTo(10, size.height);
+    path.quadraticBezierTo(0, size.height - 10, 0, size.height - 20);
+    path.lineTo(0, 20);
+    path.quadraticBezierTo(0, 10, 10, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+// class CircleClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     Path path = Path()
+//       ..addOval(Rect.fromCircle(
+//         center: Offset(size.width / 2, size.height / 2),
+//         radius: size.width / 2, // Ensures it remains a circle
+//       ));
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+// }
+
+class CircleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path()
+      ..addOval(Rect.fromCircle(
+        center: Offset(size.width / 2, size.height / 2),
+        radius: size.width / 2, // Ensures it remains a circle
+      ));
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class RectangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..addRRect(RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(0)));
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class EllipticalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+Widget _buildWaterBubbleShape() {
+  final List<CustomClipper<Path>> bubbleClippers = [
+    CircleClipper(),
+    EllipticalClipper(),
+  ];
+  final random = Random();
+
+  return Positioned(
+    top: random.nextDouble() * 800 - 300, // Spread farther from main shape
+    left: random.nextDouble() * 700 - 300,
+    child: Transform.rotate(
+      angle: random.nextDouble() * pi, // Random rotation
+      child: ClipPath(
+        clipper: bubbleClippers[random.nextInt(bubbleClippers.length)],
+        child: Stack(
+          children: [
+            // Glass effect
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Softer blur
+              child: Container(
+                height: random.nextDouble() * 40 + 15, // Smaller sizes
+                width: random.nextDouble() * 40 + 15,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3), // Glow in center
+                      Colors.white.withOpacity(0.1), // Transparent edges
+                    ],
+                    stops: [0.4, 1.0],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5), // Thin glossy edge
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.2), // Soft glow
+                      blurRadius: 5,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Small highlight inside bubble
+            Positioned(
+              top: 5,
+              left: 5,
+              child: Container(
+                height: 7,
+                width: 7,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

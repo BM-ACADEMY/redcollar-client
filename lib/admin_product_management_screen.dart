@@ -151,11 +151,21 @@ class _AdminProductScreenState extends State<AdminProductScreen> {
     return Scaffold(
       appBar: AppBar(
         // ✅ Fixed AppBar Syntax
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
         title: Row(
           mainAxisAlignment:
               MainAxisAlignment.spaceBetween, // ✅ Align title & icon
           children: [
-            const Text('Admin Product Screen'), // ✅ Left side title
+            const Text(
+              'Admin Product Screen',
+              style: TextStyle(fontSize: 16),
+            ), // ✅ Left side title
             IconButton(
               icon: const Icon(Icons.favorite,
                   color: Colors.red), // ❤️ Favorite Icon

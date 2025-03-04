@@ -35,8 +35,17 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List;
-      return List<Map<String, dynamic>>.from(data);
+      final data = json.decode(response.body);
+
+      // Check if the response is a list or a message object
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      } else if (data is Map<String, dynamic> && data.containsKey('message')) {
+        // Handle "No products found" case
+        return []; // Return empty list so the UI shows "No products found"
+      } else {
+        throw Exception('Unexpected response format');
+      }
     } else {
       throw Exception('Failed to load products');
     }
@@ -52,7 +61,15 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
             style: TextStyle(color: Colors.black, fontSize: 16)),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
       ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Padding(
@@ -134,6 +151,11 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
     final imageUrl =
         item['images']?.isNotEmpty == true ? item['images'][0] : '';
 
+    final discountPercentage = item['discount_percentage'] as num? ?? 0;
+    final discountedPrice = ((item['original_price'] as num) -
+            ((item['original_price'] as num) * discountPercentage / 100))
+        .toStringAsFixed(2);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -156,13 +178,46 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
                   Icon(Icons.image_not_supported),
             ),
           ),
+
+          // **Discount Badge**
+          if (discountPercentage > 0)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.local_offer, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      '${discountPercentage.toStringAsFixed(0)}% OFF',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Product Details Container
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(16),
-              color: Color.fromARGB(255, 238, 238, 238),
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 238, 238, 238),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -180,7 +235,7 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$${((item['original_price'] as num) - ((item['original_price'] as num) * (item['discount_percentage'] as num) / 100)).toStringAsFixed(2)}',
+                        '\$$discountedPrice',
                         style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.bold),
                       ),
@@ -196,7 +251,7 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
                           isFavorite
                               ? Icons.shopping_bag
                               : Icons.shopping_bag_outlined,
-                          color: isFavorite ? Colors.red : Color(0xFFFE0000),
+                          color: isFavorite ? Colors.black : Colors.black,
                         ),
                       ),
                     ],
@@ -211,10 +266,22 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(child: Lottie.asset('assets/jsons/empty.json', height: 200));
+    return Center(
+      child: Text(
+        'No products found',
+        style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey),
+      ),
+    );
   }
 
   Widget _buildErrorState() {
-    return Center(child: Lottie.asset('assets/jsons/error.json', height: 200));
+    return Center(
+      child: Text(
+        'Failed to load products',
+        style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.w500, color: Colors.red),
+      ),
+    );
   }
 }

@@ -92,43 +92,95 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(promoId == null ? 'Add Promotion' : 'Update Promotion'),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          title: Text(
+            promoId == null ? 'Add Promotion' : 'Update Promotion',
+            style: TextStyle(fontSize: 16),
+          ),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
                   controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Title'),
+                  decoration: InputDecoration(
+                    hintText: 'Title',
+                    // prefixIcon: const Icon(Icons.title, color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: messageController,
-                  decoration: const InputDecoration(labelText: 'Message'),
-                  maxLines: 3, // Optional, for a larger message input box
+                  decoration: InputDecoration(
+                    hintText: 'Message',
+                    // prefixIcon: const Icon(Icons.message, color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () async => await _pickImage(setState),
-                  child: const Text('Pick Image'),
+                GestureDetector(
+                  onTap: () async => await _pickImage(setState),
+                  child: Container(
+                    width: double.infinity,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.grey, width: 2), // Solid border
+                      borderRadius:
+                          BorderRadius.circular(12), // Rounded corners
+                      color: Colors.grey[100], // Light background
+                    ),
+                    alignment: Alignment.center,
+                    child: _selectedImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              _selectedImage!,
+                              width: 150,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.upload_file,
+                                  size: 40, color: Colors.grey),
+                              const SizedBox(height: 5),
+                              Text(
+                                "Upload Image",
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
                 const SizedBox(height: 10),
-                _selectedImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(_selectedImage!,
-                            width: 150, height: 150, fit: BoxFit.cover),
-                      )
-                    : (currentImageUrl != null && currentImageUrl.isNotEmpty)
-                        ? Image.network(currentImageUrl,
-                            width: 150, height: 150, fit: BoxFit.cover)
-                        : const Text('No image selected',
-                            style: TextStyle(color: Colors.grey)),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white, // White background
+                foregroundColor: Colors.black, // Black text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // Rounded corners
+                  side: const BorderSide(color: Colors.black), // Black border
+                ),
+              ),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
@@ -138,9 +190,10 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
 
                 if (title.isEmpty || message.isEmpty) {
                   Fluttertoast.showToast(
-                      msg: "Title and Message are required.",
-                      backgroundColor: Colors.red,
-                      textColor: Colors.white);
+                    msg: "Title and Message are required.",
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                  );
                   return;
                 }
 
@@ -199,6 +252,13 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
                   );
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black, // Black background
+                foregroundColor: Colors.white, // White text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // Rounded corners
+                ),
+              ),
               child:
                   Text(promoId == null ? 'Add Promotion' : 'Update Promotion'),
             ),
@@ -216,7 +276,19 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Manage Promotions'), backgroundColor: Colors.teal),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Border height
+            child: Container(
+              color: Colors.black26, // Border color
+              height: 1.0, // Border thickness
+            ),
+          ),
+          title: const Text(
+            'Manage Promotions',
+            style: TextStyle(fontSize: 16),
+          ),
+          backgroundColor: Colors.white),
+      backgroundColor: Colors.white,
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: promotionsFuture,
         builder: (context, snapshot) {
@@ -263,6 +335,7 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
                         onPressed: () => _addOrUpdatePromotion(context,
                             promoId: promoId,
                             currentTitle: promo['title'],
+                            currentMessage: promo['message'],
                             currentImageUrl: imageUrl),
                       ),
                       IconButton(
@@ -278,7 +351,7 @@ class _ManagePromotionsScreenState extends State<ManagePromotionsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrUpdatePromotion(context),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );

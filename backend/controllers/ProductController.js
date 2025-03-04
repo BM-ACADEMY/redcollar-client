@@ -200,7 +200,7 @@ exports.getProductsByTypeId = async (req, res) => {
 
     const products = await Product.find({ type: objectId });
 
-    console.log("Products found:", products.length); // Log product count
+    console.log("Products found:", products.length);
 
     if (!products.length) {
       return res.status(404).json({ message: 'No products found for this type' });

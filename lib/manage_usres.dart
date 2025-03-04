@@ -159,32 +159,30 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         final List<dynamic> userData = data['users'];
-        // final int totalUsers = data['totalUsers'];
         final int totalPages = data['totalPages'];
 
-        if (userData.isEmpty || currentPage > totalPages) {
-          setState(() => hasMore = false);
-        } else {
-          setState(() {
-            users.addAll(userData.map((user) => {
-                  'id': user['_id'].toString(),
-                  'username': user['username'].toString(),
-                  'email': user['email'].toString(),
-                  'phoneNumber': user['phoneNumber']?.toString() ?? '',
-                  'addressLine1': user['address']?['addressLine1'] ?? '',
-                  'addressLine2': user['address']?['addressLine2'] ?? '',
-                  'country': user['address']?['country'] ?? '',
-                  'state': user['address']?['state'] ?? '',
-                  'city': user['address']?['city'] ?? '',
-                  'pincode': user['address']?['pincode'] ?? '',
-                }));
+        setState(() {
+          if (refresh) {
+            users.clear();
+          }
 
-            currentPage++;
-            hasMore = currentPage <= totalPages; // Stop fetching if last page
-          });
-        }
+          users.addAll(userData.map((user) => {
+                'id': user['_id'].toString(),
+                'username': user['username'].toString(),
+                'email': user['email'].toString(),
+                'phoneNumber': user['phoneNumber']?.toString() ?? '',
+                'addressLine1': user['address']?['addressLine1'] ?? '',
+                'addressLine2': user['address']?['addressLine2'] ?? '',
+                'country': user['address']?['country'] ?? '',
+                'state': user['address']?['state'] ?? '',
+                'city': user['address']?['city'] ?? '',
+                'pincode': user['address']?['pincode'] ?? '',
+              }));
+
+          currentPage++;
+          hasMore = currentPage <= totalPages; // Stop fetching if last page
+        });
       } else {
         throw Exception('Failed to load users');
       }
@@ -196,15 +194,16 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   }
 
   // ✅ POST (ADD NEW USER)
-  Future<void> _addUser(
-      String username, String email, String phoneNumber) async {
+  Future<void> _addUser(String username, String email, String phoneNumber,
+      String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/addUser'),
+      Uri.parse('$baseUrl/users/register'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'username': username,
         'email': email,
         'phoneNumber': phoneNumber,
+        'password': password,
         'address': {} // Empty initially
       }),
     );
@@ -229,8 +228,18 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
     if (response.statusCode == 200) {
       _showToast("User updated successfully", Colors.green);
+
+      // Ensure UI update before closing the dialog
+      setState(() {
+        users = [];
+        currentPage = 1;
+        hasMore = true;
+      });
+
       Navigator.pop(context);
-      _getUsers(refresh: true);
+
+      // Fetch updated user list
+      await _getUsers(refresh: true);
     } else {
       _showToast("Error updating user", Colors.red);
     }
@@ -238,16 +247,24 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
   // ✅ DELETE USER
   Future<void> _deleteUser(String userId) async {
-    final response =
-        await http.delete(Uri.parse('$baseUrl/users/deleteUser/$userId'));
+    try {
+      final response =
+          await http.delete(Uri.parse('$baseUrl/users/deleteUserById/$userId'));
 
-    if (response.statusCode == 200) {
-      _showToast("User deleted successfully", Colors.green);
-      setState(() {
-        users.removeWhere((user) => user['id'] == userId);
-      });
-    } else {
-      _showToast("Error deleting user", Colors.red);
+      if (response.statusCode == 200) {
+        _showToast("User deleted successfully", Colors.green);
+
+        setState(() {
+          users.removeWhere((user) => user['id'] == userId);
+        });
+
+        // Refresh the user list after deletion
+        await _getUsers(refresh: true);
+      } else {
+        _showToast("Error deleting user", Colors.red);
+      }
+    } catch (e) {
+      _showToast("Error deleting user: $e", Colors.red);
     }
   }
 
@@ -264,6 +281,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     TextEditingController usernameController = TextEditingController();
     TextEditingController emailController = TextEditingController();
     TextEditingController phoneController = TextEditingController();
+    TextEditingController passwordController = TextEditingController();
 
     showDialog(
       context: context,
@@ -281,6 +299,10 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
             TextField(
                 controller: phoneController,
                 decoration: const InputDecoration(labelText: "Phone Number")),
+            TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: "Password"))
           ],
         ),
         actions: [
@@ -290,7 +312,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
           ElevatedButton(
             onPressed: () {
               _addUser(usernameController.text, emailController.text,
-                  phoneController.text);
+                  phoneController.text, passwordController.text);
               Navigator.pop(context);
             },
             child: const Text("Add"),
@@ -377,12 +399,27 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Users'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddUserDialog,
+            tooltip: "Add New User",
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showEditUserDialog({}),
         child: const Icon(Icons.add),
       ),
+      backgroundColor: Colors.white,
       body: Scrollbar(
         thickness: 6,
         radius: const Radius.circular(10),
@@ -496,7 +533,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.2), // More visible transparency
+          color: Colors.black.withOpacity(0.2),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: color, size: 24),

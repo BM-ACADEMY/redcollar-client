@@ -101,9 +101,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       theme: theme,
       home: Scaffold(
         appBar: AppBar(
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Border height
+            child: Container(
+              color: Colors.black26, // Border color
+              height: 1.0, // Border thickness
+            ),
+          ),
           title: const Text(
             'Settings',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           backgroundColor: Colors.white,
           actions: [
@@ -113,6 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+        backgroundColor: Colors.white,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -191,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ElevatedButton(
                 onPressed: _goToHomeScreen,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.black,
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                 ),

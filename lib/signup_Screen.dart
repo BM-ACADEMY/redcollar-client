@@ -17,6 +17,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   static String? baseUrl = dotenv.env['BASE_URL'];
   Map<String, dynamic>? _fbUserData;
   AccessToken? _fbAccessToken;
@@ -26,6 +27,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -160,6 +162,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       'username': _usernameController.text.trim(),
       'email': _emailController.text.trim(),
       'password': _passwordController.text.trim(),
+      'phoneNumber': _phoneController.text.trim()
     });
 
     try {
@@ -241,6 +244,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       isPassword: false,
                     ),
                     const SizedBox(height: 19),
+                    CustomInputField(
+                      controller: _phoneController,
+                      hintText: 'Phone Number',
+                      isPassword: false,
+                    ),
                     CustomInputField(
                       controller: _passwordController,
                       hintText: 'Password',

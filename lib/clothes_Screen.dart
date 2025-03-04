@@ -264,6 +264,13 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
           style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
         backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
         iconTheme: const IconThemeData(color: Colors.black, size: 20),
       ),
       backgroundColor: Colors.white,
@@ -403,6 +410,11 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
     final imageUrl =
         item['images']?.isNotEmpty == true ? item['images'][0] : '';
 
+    final discountPercentage = item['discount_percentage'] as num? ?? 0;
+    final discountedPrice = ((item['original_price'] as num) -
+            ((item['original_price'] as num) * discountPercentage / 100))
+        .toStringAsFixed(2);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -424,6 +436,36 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
               borderRadius: BorderRadius.circular(16),
               child: _getImageWidget(imageUrl),
             ),
+
+            // **Discount Badge**
+            if (discountPercentage > 0)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.local_offer, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '${discountPercentage.toStringAsFixed(0)}% OFF',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // Product Details at the Bottom
             Positioned(
               bottom: 0,
@@ -456,7 +498,7 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '\$${((item['original_price'] as num) - ((item['original_price'] as num) * (item['discount_percentage'] as num) / 100)).toStringAsFixed(2)}',
+                          '\$$discountedPrice',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,

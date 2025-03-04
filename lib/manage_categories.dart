@@ -177,7 +177,23 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Manage Categories")),
+      appBar: AppBar(
+        title: const Text(
+          "Manage Categories",
+          style: TextStyle(
+            fontSize: 16,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -248,12 +264,11 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                             _isHovering ? 0.8 : 1.0, // Opacity effect on hover
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Color(0xFF3F2010), // Button background
+                            backgroundColor: Colors.black, // Button background
                             foregroundColor: Colors.brown, // Button text color
                             shape: RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.circular(10), // Border radius
+                                  BorderRadius.circular(50), // Border radius
                               side: BorderSide(
                                   color: Colors.brown), // Brown border
                             ),

@@ -493,7 +493,17 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.category} Products'),
+        title: Text(
+          '${widget.category} Products',
+          style: TextStyle(fontSize: 16),
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: products.length,

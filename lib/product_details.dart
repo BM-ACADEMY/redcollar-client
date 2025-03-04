@@ -132,9 +132,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     bool _isHovered = false;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            const Color.fromARGB(255, 250, 248, 248), // White background
-        elevation: 4, // Small shadow effect
+        backgroundColor: Colors.white, // White background
+        // elevation: 4,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
         shadowColor: Colors.black.withOpacity(0.1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back), // Left arrow
@@ -304,24 +310,71 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Product Name & Price
+                          // Product Name, Price & Discount Badge
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                productName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '₹${discountedPrice.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    productName,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: Alignment
+                                        .topCenter, // Aligns the content to the right
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize
+                                          .min, // Ensures row takes only necessary space
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '₹${discountedPrice.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        if (product['discount_percentage'] !=
+                                                null &&
+                                            product['discount_percentage'] > 0)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.local_offer,
+                                                    color: Colors.white,
+                                                    size: 14),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${product['discount_percentage']}% OFF',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  )
+                                ],
                               ),
                             ],
                           ),
@@ -335,16 +388,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 fontSize: 16, color: Colors.black54),
                           ),
                           const SizedBox(height: 10),
+
+                          // Brand & Delivery Option
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
                                   const Icon(Icons.local_offer,
-                                      size: 20,
-                                      color: Colors.black), // Brand icon
-                                  const SizedBox(
-                                      width: 8), // Space between icon and text
+                                      size: 20, color: Colors.black),
+                                  const SizedBox(width: 8),
                                   Text(
                                     product['brand'] ?? 'No Brand available.',
                                     style: const TextStyle(
@@ -354,11 +407,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.local_shipping,
+                                  const Icon(Icons.local_shipping,
                                       size: 20, color: Color(0xFFFE0000)),
-                                  const SizedBox(
-                                      width:
-                                          5), // Add spacing between the icon and text
+                                  const SizedBox(width: 5),
                                   Text(
                                     product['deliveryOption'] ?? 'Standard',
                                     style: const TextStyle(
@@ -367,11 +418,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     ),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
-                          // Right side - Reviews
 
+                          // Reviews Section
                           Row(
                             children: [
                               const Icon(Icons.star,
@@ -394,18 +445,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Color Selection
+                          // Color & Size Selection
                           _buildColorSelection(colors),
                           const SizedBox(height: 16),
-
-                          // Size Selection
                           _buildSizeSelection(sizes),
                           const SizedBox(height: 16),
 
-                          // Delivery Option
+                          // Delivery Option & Actions
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
+                              // Favorite Button
                               IconButton(
                                 onPressed: () {
                                   if (isFavorite) {
@@ -419,19 +469,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   width: 50,
                                   height: 50,
                                   decoration: BoxDecoration(
-                                    color: Colors.white, // White background
-                                    shape: BoxShape.circle, // Rounded container
-                                    // border: Border.all(
-                                    //     color: Colors.black,
-                                    //     width: 2),
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black
-                                            .withOpacity(0.2), // Shadow color
-                                        blurRadius: 6, // Medium blur
-                                        spreadRadius: 2, // Soft spread
-                                        offset:
-                                            Offset(2, 4), // Position of shadow
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 6,
+                                        spreadRadius: 2,
+                                        offset: Offset(2, 4),
                                       ),
                                     ],
                                   ),
@@ -448,15 +493,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               // Add to Cart Button
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.black, // Black background
+                                  backgroundColor: Colors.black,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        12), // Rounded edges
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 14, horizontal: 20), // Spacing
-                                  elevation: 6, // Slight shadow for depth
+                                      vertical: 14, horizontal: 20),
+                                  elevation: 6,
                                 ),
                                 onPressed: isLoading
                                     ? null
@@ -475,21 +518,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           isAddedToBasket = true;
                                         });
                                       },
-                                icon: const Icon(
-                                  Icons.shopping_cart, // Shopping cart icon
-                                  color:
-                                      Colors.white, // White icon for contrast
-                                ),
+                                icon: const Icon(Icons.shopping_cart,
+                                    color: Colors.white),
                                 label: Text(
                                   isLoading ? 'Adding...' : 'Add to Cart',
                                   style: const TextStyle(
                                     fontSize: 18,
-                                    color: Colors.white, // White text
+                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.2, // Slight spacing
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ],

@@ -18,17 +18,16 @@ class WriteReviewPage extends StatefulWidget {
 
 class _WriteReviewPageState extends State<WriteReviewPage> {
   final _formKey = GlobalKey<FormState>();
-  List<XFile>? _selectedImages = [];
+  List<XFile> _selectedImages = [];
   static String? baseUrl = dotenv.env['BASE_URL'];
   final TextEditingController _commentController = TextEditingController();
   int _rating = 5;
   final ImagePicker _picker = ImagePicker();
   late String userId = '';
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Access the UserProvider inside didChangeDependencies
     final userProvider = Provider.of<UserProvider>(context);
     userId = userProvider.userId;
   }
@@ -48,18 +47,13 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
     var uri = Uri.parse('$baseUrl/reviews/create-reviews');
     var request = http.MultipartRequest('POST', uri);
 
-    // Adding the form fields
     request.fields['user'] = userId;
     request.fields['product'] = widget.productId;
     request.fields['comment'] = _commentController.text;
     request.fields['rating'] = _rating.toString();
 
-    // Adding images with content-type based on file extension
-    for (var image in _selectedImages!) {
-      String fileType = image.path.split('.').last; // Extract file extension
-      print('Uploading image: ${image.path} with file type: $fileType');
-
-      // Dynamically set content type based on file extension
+    for (var image in _selectedImages) {
+      String fileType = image.path.split('.').last;
       MediaType mediaType = MediaType('image', fileType);
 
       request.files.add(await http.MultipartFile.fromPath(
@@ -69,12 +63,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
       ));
     }
 
-    // Sending the request
     var response = await request.send();
-    print('Response Status: ${response.statusCode}');
-    print('Response Headers: ${response.headers}');
-    print('Response Body: ${response.stream.toString()}');
-
     if (response.statusCode == 201) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Review submitted!')));
@@ -88,65 +77,162 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Write a Review")),
+      appBar: AppBar(
+        title: const Text("Write a Review",
+            style: TextStyle(color: Colors.black, fontSize: 18)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey[300],
+            height: 1,
+          ),
+        ),
+      ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Upload Button
-              ElevatedButton.icon(
-                onPressed: _pickImages,
-                icon: const Icon(Icons.image),
-                label: const Text("Upload Images"),
-              ),
-
-              // Show Selected Images
-              if (_selectedImages!.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  children: _selectedImages!
-                      .map((img) => Image.file(File(img.path), width: 80))
-                      .toList(),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image Picker Button
+                GestureDetector(
+                  onTap: _pickImages,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.add_a_photo, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text("Upload Images",
+                            style:
+                                TextStyle(color: Colors.black, fontSize: 16)),
+                      ],
+                    ),
+                  ),
                 ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
-              // Comment Input Field
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(labelText: "Your Comment"),
-                maxLines: 3,
-                validator: (value) =>
-                    value!.isEmpty ? "Please enter a comment" : null,
-              ),
+                // Show Selected Images (Grid View)
+                if (_selectedImages.isNotEmpty)
+                  SizedBox(
+                    height: 100,
+                    child: GridView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _selectedImages.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        childAspectRatio: 1,
+                      ),
+                      itemBuilder: (context, index) => Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(_selectedImages[index].path),
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedImages.removeAt(index);
+                                });
+                              },
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black54,
+                                ),
+                                child: const Icon(Icons.close,
+                                    size: 20, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Rating Dropdown
-              DropdownButtonFormField<int>(
-                value: _rating,
-                items: List.generate(
-                    5,
-                    (index) => DropdownMenuItem(
-                          value: index + 1,
-                          child:
-                              Text("${index + 1} Star${index > 0 ? 's' : ''}"),
-                        )),
-                onChanged: (value) => setState(() => _rating = value!),
-                decoration: const InputDecoration(labelText: "Rating"),
-              ),
+                // Comment Input Field
+                TextFormField(
+                  controller: _commentController,
+                  decoration: InputDecoration(
+                    labelText: "Your Comment",
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  maxLines: 3,
+                  validator: (value) =>
+                      value!.isEmpty ? "Please enter a comment" : null,
+                ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Submit Button
-              ElevatedButton(
-                onPressed: _submitReview,
-                child: const Text("Submit Review"),
-              ),
-            ],
+                // Star Rating
+                const Text("Rate this Product:",
+                    style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 10),
+                Row(
+                  children: List.generate(5, (index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _rating = index + 1;
+                        });
+                      },
+                      child: Icon(
+                        index < _rating ? Icons.star : Icons.star_border,
+                        color: Color(0xFFFE0000),
+                        size: 32,
+                      ),
+                    );
+                  }),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: _submitReview,
+                    child: const Text("Submit Review",
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

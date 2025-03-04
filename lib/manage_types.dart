@@ -60,8 +60,18 @@ class _ManageTypesScreenState extends State<ManageTypesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Manage Types"),
+        title: const Text(
+          "Manage Types",
+          style: TextStyle(fontSize: 16),
+        ),
         backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
         actions: [
           ElevatedButton.icon(
             onPressed: () async {

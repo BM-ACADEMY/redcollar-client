@@ -1063,12 +1063,18 @@ class _SearchScreenState extends State<SearchScreen> {
           "Search Products",
           style: TextStyle(color: Colors.black, fontSize: 16),
         ),
-        backgroundColor: Colors.white, // White AppBar background
-        elevation: 1, // Medium drop shadow
+        backgroundColor: Colors.white,
         shadowColor: Colors.black26,
         iconTheme: IconThemeData(color: Colors.black),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
       ),
-      backgroundColor: Colors.white, // White background for the entire screen
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           buildCategoryDropdown(),

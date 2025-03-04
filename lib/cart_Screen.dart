@@ -700,9 +700,16 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 4, // Increased elevation for shadow effect
+        // elevation: 4,
         shadowColor: Colors.black26, // Soft shadow color
         iconTheme: const IconThemeData(color: Colors.black),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Border height
+          child: Container(
+            color: Colors.black26, // Border color
+            height: 1.0, // Border thickness
+          ),
+        ),
         title: const Text(
           'My Cart',
           style: TextStyle(

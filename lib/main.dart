@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
 import 'package:flutter_application_1/service/notifi_service.dart';
+import 'package:flutter_application_1/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'favorites_provider.dart';
 import 'product_provider.dart';
@@ -50,7 +51,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const OnboardingScreen(),
       },
       // home: const NotificationPage(title: 'Notification Test'),
-      home: const OnboardingScreen(),
+      // home: const OnboardingScreen(),
+      home: SplashScreen(),
     );
   }
 }
