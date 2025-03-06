@@ -234,10 +234,29 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$$discountedPrice',
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Text(
+                            '\₹${item['original_price']}',
+                            style: const TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey,
+                              decoration: TextDecoration
+                                  .lineThrough, // Strikethrough for original price
+                            ),
+                          ),
+                          const SizedBox(width: 5), // Spacing between prices
+                          Text(
+                            '\₹$discountedPrice',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Colors.red, // Highlight the discounted price
+                            ),
+                          ),
+                        ],
                       ),
                       IconButton(
                         onPressed: () {
@@ -251,7 +270,7 @@ class _ProductTypesScreenState extends State<ProductTypesScreen> {
                           isFavorite
                               ? Icons.shopping_bag
                               : Icons.shopping_bag_outlined,
-                          color: isFavorite ? Colors.black : Colors.black,
+                          color: Colors.black,
                         ),
                       ),
                     ],

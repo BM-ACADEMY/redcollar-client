@@ -80,11 +80,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Future<void> _loadUnreadCount() async {
+    print("Calling _loadUnreadCount");
+
     int count = await NotifiService().getUnreadCount();
-    print('$count,count');
-    setState(() {
-      unreadCount = count;
-    });
+    print("Fetched count: $count");
+
+    if (mounted) {
+      // Check if widget is still in the tree
+      setState(() {
+        unreadCount = count;
+        print("Updated unreadCount: $unreadCount");
+      });
+    }
   }
 
   Future<void> _resetUnreadCount() async {
@@ -326,14 +333,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     ),
                                   ),
                                   Align(
-                                    alignment: Alignment
-                                        .topCenter, // Aligns the content to the right
+                                    alignment: Alignment.topCenter,
                                     child: Row(
-                                      mainAxisSize: MainAxisSize
-                                          .min, // Ensures row takes only necessary space
+                                      mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
+                                        // Original Price with Strikethrough
+                                        Text(
+                                          '₹${product['original_price']}',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                            width: 8), // Space between prices
+                                        // Discounted Price
                                         Text(
                                           '₹${discountedPrice.toStringAsFixed(2)}',
                                           style: const TextStyle(
@@ -342,7 +363,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             color: Colors.green,
                                           ),
                                         ),
-                                        const SizedBox(width: 10),
+                                        const SizedBox(
+                                            width:
+                                                10), // Space before discount badge
+                                        // Discount Badge
                                         if (product['discount_percentage'] !=
                                                 null &&
                                             product['discount_percentage'] > 0)
@@ -373,7 +397,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           ),
                                       ],
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ],
@@ -885,6 +909,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         );
 
         await _loadUnreadCount();
+        setState(() {});
         print("Item added to basket");
       } else {
         // Error handling

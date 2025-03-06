@@ -312,6 +312,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             ],
           ),
         ),
+        backgroundColor: Colors.white,
         body: TabBarView(
           children: [
             _buildAllProductsView(),

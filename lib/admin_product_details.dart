@@ -29,7 +29,6 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> types = [];
-  // List to store picked images from the file picker (used in the form)
   List<XFile>? _pickedImages;
   static String? baseUrl = dotenv.env['BASE_URL'];
 
@@ -321,127 +320,225 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(product == null ? 'Add Product' : 'Edit Product'),
+          backgroundColor: Colors.white,
+          title: Text(
+            product == null ? 'Add Product' : 'Edit Product',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  TextField(
                     controller: nameController,
-                    decoration: InputDecoration(labelText: 'Name')),
-                TextField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(labelText: 'Description')),
-                // Category dropdown using fetched categories.
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCategory = val;
-                    });
-                  },
-                  items: categories.map((cat) {
-                    return DropdownMenuItem<String>(
-                      value: cat['_id'],
-                      child: Text(cat['name']),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(labelText: 'Category'),
-                ),
-                DropdownButtonFormField<String>(
-                  value: _selectedType,
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedType = val;
-                    });
-                  },
-                  items: types.map((cat) {
-                    return DropdownMenuItem<String>(
-                      value: cat['_id'],
-                      child: Text(cat['name']),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(labelText: 'Types'),
-                ),
-                TextField(
-                    controller: brandController,
-                    decoration: InputDecoration(labelText: 'Brand')),
-                TextField(
-                  controller: priceController,
-                  decoration: InputDecoration(labelText: 'Original Price'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: discountController,
-                  decoration: InputDecoration(labelText: 'Discount Percentage'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                    controller: colorController,
-                    decoration:
-                        InputDecoration(labelText: 'Colors (comma separated)')),
-                TextField(
-                    controller: sizesController,
-                    decoration:
-                        InputDecoration(labelText: 'Sizes (comma separated)')),
-                TextField(
-                  controller: stockController,
-                  decoration: InputDecoration(labelText: 'Stock Quantity'),
-                  keyboardType: TextInputType.number,
-                ),
-                // Instead of a text field for images, use a button to pick images.
-                ElevatedButton(
-                  onPressed: pickImages,
-                  child: Text('Pick Images'),
-                ),
-                if (_pickedImages != null && _pickedImages!.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    children: _pickedImages!
-                        .map((xfile) => Chip(label: Text(xfile.name)))
-                        .toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                // Gender dropdown.
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  onChanged: (val) {
-                    _selectedGender = val;
-                  },
-                  items: ['Male', 'Female', 'Unisex'].map((gender) {
-                    return DropdownMenuItem<String>(
-                      value: gender,
-                      child: Text(gender),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(labelText: 'Gender'),
-                ),
-                // Age category dropdown.
-                DropdownButtonFormField<String>(
-                  value: _selectedAgeCategory,
-                  onChanged: (val) {
-                    _selectedAgeCategory = val;
-                  },
-                  items: ['Adults', 'Kids', 'Baby'].map((ageCat) {
-                    return DropdownMenuItem<String>(
-                      value: ageCat,
-                      child: Text(ageCat),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(labelText: 'Age Category'),
-                ),
-                TextField(
-                  controller: ratingController,
-                  decoration: InputDecoration(labelText: 'Rating'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedCategory = val;
+                      });
+                    },
+                    items: categories.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat['_id'],
+                        child: Text(cat['name']),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedType,
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedType = val;
+                      });
+                    },
+                    items: types.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat['_id'],
+                        child: Text(cat['name']),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Type',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: brandController,
+                    decoration: InputDecoration(
+                      labelText: 'Brand',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: priceController,
+                    decoration: InputDecoration(
+                      labelText: 'Original Price',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: discountController,
+                    decoration: InputDecoration(
+                      labelText: 'Discount Percentage',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: colorController,
+                    decoration: InputDecoration(
+                      labelText: 'Colors (comma separated)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: sizesController,
+                    decoration: InputDecoration(
+                      labelText: 'Sizes (comma separated)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: stockController,
+                    decoration: InputDecoration(
+                      labelText: 'Stock Quantity',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 10),
+                  // ElevatedButton(
+                  //   onPressed: pickImages,
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.black, // Black button
+                  //     foregroundColor: Colors.white, // White text
+                  //   ),
+                  //   child: Text('Pick Images'),
+                  // ),
+                  GestureDetector(
+                    onTap: pickImages,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.add_a_photo, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text("Upload Images",
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_pickedImages != null && _pickedImages!.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      children: _pickedImages!
+                          .map((xfile) => Chip(label: Text(xfile.name)))
+                          .toList(),
+                    ),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedGender,
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedGender = val;
+                      });
+                    },
+                    items: ['Male', 'Female', 'Unisex'].map((gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedAgeCategory,
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedAgeCategory = val;
+                      });
+                    },
+                    items: ['Adults', 'Kids', 'Baby'].map((ageCat) {
+                      return DropdownMenuItem<String>(
+                        value: ageCat,
+                        child: Text(ageCat),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Age Category',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: ratingController,
+                    decoration: InputDecoration(
+                      labelText: 'Rating',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
                     controller: deliveryOptionController,
-                    decoration: InputDecoration(labelText: 'Delivery Option')),
-              ],
+                    decoration: InputDecoration(
+                      labelText: 'Delivery Option',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: Text('Cancel'),
+            ),
             TextButton(
               onPressed: () {
                 final Map<String, dynamic> formData = {
@@ -462,7 +559,6 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
                       .map((e) => e.trim())
                       .toList(),
                   'stock_quantity': int.tryParse(stockController.text) ?? 0,
-                  // For images, if new images are picked, use them; otherwise, use fallback from imagesController.
                   'images': _pickedImages != null && _pickedImages!.isNotEmpty
                       ? _pickedImages!.map((x) => x.path).toList()
                       : imagesController.text
@@ -481,6 +577,10 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
                 }
                 Navigator.pop(context);
               },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.black, // Black button
+                foregroundColor: Colors.white, // White text
+              ),
               child: Text(product == null ? 'Add' : 'Update'),
             ),
           ],
@@ -493,18 +593,20 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(
           '${widget.category} Products',
           style: TextStyle(fontSize: 16),
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.0), // Border height
+          preferredSize: Size.fromHeight(1.0),
           child: Container(
-            color: Colors.black26, // Border color
-            height: 1.0, // Border thickness
+            color: Colors.black26,
+            height: 1.0,
           ),
         ),
       ),
+      backgroundColor: Colors.white,
       body: ListView.builder(
         itemCount: products.length,
         itemBuilder: (context, index) {
@@ -640,6 +742,7 @@ class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
       ),
       floatingActionButton: widget.isAdmin
           ? FloatingActionButton(
+              backgroundColor: Colors.white,
               onPressed: () {
                 showProductForm();
               },

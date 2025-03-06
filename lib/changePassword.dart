@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   @override
@@ -20,7 +21,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   late String username;
   late String userId;
   late String email;
-
+  final String? baseUrl = dotenv.env['BASE_URL'];
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -52,7 +53,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
     try {
       final response = await http.put(
-        Uri.parse('http://10.0.2.2:6000/api/users/updateUserById/${userId}'),
+        Uri.parse('$baseUrl/users/updateUserById/${userId}'),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer YOUR_JWT_TOKEN', // Pass JWT token

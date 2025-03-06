@@ -608,6 +608,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'check_Screen.dart'; // CheckoutScreen file
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key, required List cart}) : super(key: key);
@@ -620,6 +621,7 @@ class _CartScreenState extends State<CartScreen> {
   late String userId;
   List<Map<String, dynamic>> cartItems = [];
   bool isLoading = true;
+  final String? baseUrl = dotenv.env['BASE_URL'];
 
   @override
   void didChangeDependencies() {
@@ -630,7 +632,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _fetchCartData() async {
-    final url = 'http://10.0.2.2:6000/api/carts/fetch-cart-by-user/$userId';
+    final url = '$baseUrl/carts/fetch-cart-by-user/$userId';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -652,7 +654,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _updateCartQuantity(String cartItemId, int newQuantity) async {
-    final url = 'http://10.0.2.2:6000/api/carts/update-cart/$cartItemId';
+    final url = '$baseUrl/carts/update-cart/$cartItemId';
     try {
       final response = await http.put(
         Uri.parse(url),
@@ -671,7 +673,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _removeFromCart(String cartItemId) async {
-    final url = 'http://10.0.2.2:6000/api/carts/delete-cart/$cartItemId';
+    final url = '$baseUrl/carts/delete-cart/$cartItemId';
     try {
       final response = await http.delete(Uri.parse(url));
 
@@ -844,7 +846,7 @@ class _CartScreenState extends State<CartScreen> {
                               },
                             ),
                             Text('${item['quantity']}',
-                                style: const TextStyle(fontSize: 16)),
+                                style: const TextStyle(fontSize: 10)),
                             IconButton(
                               icon: const Icon(Icons.add_circle,
                                   color: Colors.black),
@@ -862,7 +864,10 @@ class _CartScreenState extends State<CartScreen> {
               ),
               // Delete Icon
               IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                ),
                 onPressed: () {
                   _removeFromCart(item['_id']);
                 },
@@ -958,6 +963,6 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   String getImageUrl(String imagePath) {
-    return 'http://10.0.2.2:6000/api/products/fetch-product-image/${imagePath.split('/').last}';
+    return '$baseUrl/products/fetch-product-image/${imagePath.split('/').last}';
   }
 }

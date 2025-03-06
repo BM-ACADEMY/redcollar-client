@@ -693,7 +693,7 @@ class _HomeContent extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            '₹${discountedPrice.toStringAsFixed(2)}',
+                                            '₹${discountedPrice.toStringAsFixed(0)}',
                                             style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -723,7 +723,7 @@ class _HomeContent extends StatelessWidget {
                                         },
                                         icon: const Icon(
                                             Icons.shopping_bag_outlined,
-                                            color: Colors.brown),
+                                            color: Color(0xFFFE0000)),
                                       ),
                                     ),
                                   ],
@@ -808,10 +808,9 @@ class _HomeContent extends StatelessWidget {
   //     },
   //   );
   // }
-
   Widget _buildProductGrid(BuildContext context) {
     return FutureBuilder(
-      future: fetchCategories(), // Fetching categories data
+      future: fetchCategories(), // Fetch categories data
       builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -836,32 +835,94 @@ class _HomeContent extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Container(
-                    width: double.infinity, // Full width
-                    height: 250, // Fixed height
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        // image: NetworkImage(getImageUrl(category['images'])),
-                        image: NetworkImage(category['images']),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Container(
-                      width: double.infinity,
-                      color: Colors.black54,
-                      padding: EdgeInsets.all(8),
-                      child: Text(
-                        category['name'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                  child: Stack(
+                    children: [
+                      // 🌟 Background Gradient Stack
+                      Container(
+                        width: double.infinity,
+                        height: 250,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black,
+                              Colors.red,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: Offset(4, 6),
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
+
+                      // Upper Stack with Image
+                      Positioned(
+                        top: 10, // Makes bottom gradient visible
+                        left: 0, // Makes right gradient visible
+                        right: 10,
+                        bottom: 0,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            children: [
+                              // Image
+                              Image.network(
+                                category['images'] ??
+                                    'https://via.placeholder.com/250',
+                                width: double.infinity,
+                                height: 250,
+                                fit: BoxFit.cover,
+                              ),
+
+                              // Overlay Gradient on Image
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.6),
+                                      Colors.transparent,
+                                    ],
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                  ),
+                                ),
+                              ),
+
+                              // Category Name on Top of Image
+                              Positioned.fill(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      // borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      category['name'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -932,23 +993,22 @@ class _HomeContent extends StatelessWidget {
           return const Center(child: Text('Failed to load types'));
         } else {
           final types = snapshot.data ?? [];
-          final List<CustomClipper<Path>> clippers = [
-            EllipticalClipper(),
-            CircleClipper(),
-            CircleClipper(),
-            CircleClipper(),
-          ];
+          final Random random = Random();
 
           return Column(
             children: types.asMap().entries.map((entry) {
               int index = entry.key;
               var type = entry.value;
-              int randomPrice = Random().nextInt(3001) + 2000;
-              CustomClipper<Path> clipper = clippers[index % clippers.length];
+              int randomPrice = random.nextInt(3001) + 2000;
+
+              // Randomly generate position offsets
+              double randomTop = random.nextDouble() * 20;
+              double randomLeft = random.nextDouble() * 20;
+              double randomBottom = random.nextDouble() * 20;
+              double randomRight = random.nextDouble() * 20;
 
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -961,44 +1021,48 @@ class _HomeContent extends StatelessWidget {
                     );
                   },
                   child: Stack(
-                    clipBehavior:
-                        Clip.none, // Allows shapes to go outside bounds
+                    clipBehavior: Clip.none, // Allows elements to overflow
                     children: [
-                      // 🌟 Main Big Shape 🌟
-                      ClipPath(
-                        clipper: clipper,
-                        child: Container(
-                          height: 450,
-                          width: 400,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.black, Colors.red],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
+                      // 🌟 Main Rectangle Shape 🌟
+                      Container(
+                        height: 400,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.black, Colors.red],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                              offset: Offset(4, 6),
+                            ),
+                          ],
                         ),
                       ),
 
                       // 🎨 Small Randomly Positioned Shapes 🎨
                       for (int i = 0; i < 5; i++) _buildWaterBubbleShape(),
 
-                      // 🖼 Image & Overlay
+                      // 🖼 Image & Overlay (Random Positions)
                       Positioned(
-                        top: 5,
-                        left: 2,
-                        right: 2,
-                        bottom: 2,
-                        child: ClipPath(
-                          clipper: clipper,
+                        top: randomTop,
+                        left: randomLeft,
+                        right: randomRight,
+                        bottom: randomBottom,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
                           child: Stack(
                             children: [
                               Image.network(
                                 type['image'] ??
                                     'https://via.placeholder.com/250',
                                 width: double.infinity,
-                                height: double.infinity,
+                                height: 400,
                                 fit: BoxFit.cover,
                               ),
                               Container(
@@ -1038,19 +1102,41 @@ class _HomeContent extends StatelessWidget {
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    Text(
-                                      "₹$randomPrice",
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        fontFamily: 'Montserrat',
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      ),
+
+                      // 🔲 Price Overlay with Black Background 🔲
+                      Positioned(
+                        bottom: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 6,
+                                spreadRadius: 2,
+                                offset: Offset(2, 4),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            "₹$randomPrice",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'Montserrat',
+                            ),
                           ),
                         ),
                       ),
@@ -1093,55 +1179,6 @@ class _HomeContent extends StatelessWidget {
   }
 }
 
-// class EllipticalClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     Path path = Path();
-//     path.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
-//     return path;
-//   }
-
-//   @override
-//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-// }
-
-// class CurvedRectangleClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     Path path = Path();
-//     path.moveTo(0, size.height * 0.1);
-//     path.quadraticBezierTo(size.width * 0.5, 0, size.width, size.height * 0.1);
-//     path.lineTo(size.width, size.height * 0.9);
-//     path.quadraticBezierTo(size.width * 0.5, size.height, 0, size.height * 0.9);
-//     path.close();
-//     return path;
-//   }
-
-//   @override
-//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-// }
-
-// class SoftEdgeRectangleClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     Path path = Path();
-//     path.moveTo(10, 0);
-//     path.lineTo(size.width - 10, 0);
-//     path.quadraticBezierTo(size.width, 10, size.width, 20);
-//     path.lineTo(size.width, size.height - 20);
-//     path.quadraticBezierTo(
-//         size.width, size.height - 10, size.width - 10, size.height);
-//     path.lineTo(10, size.height);
-//     path.quadraticBezierTo(0, size.height - 10, 0, size.height - 20);
-//     path.lineTo(0, 20);
-//     path.quadraticBezierTo(0, 10, 10, 0);
-//     path.close();
-//     return path;
-//   }
-
-//   @override
-//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-// }
 class CurvedRectangleClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

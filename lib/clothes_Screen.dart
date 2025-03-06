@@ -359,29 +359,29 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
           : _pages[_currentIndex], // Show selected page
 
       // Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        backgroundColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: false, // Hide unselected labels
-        selectedLabelStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ), // Style only the active label
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite), label: 'Favorites'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   currentIndex: _currentIndex,
+      //   onTap: _onItemTapped,
+      //   type: BottomNavigationBarType.fixed,
+      //   selectedItemColor: Colors.black,
+      //   backgroundColor: Colors.white,
+      //   unselectedItemColor: Colors.grey,
+      //   showSelectedLabels: true,
+      //   showUnselectedLabels: false, // Hide unselected labels
+      //   selectedLabelStyle: const TextStyle(
+      //     fontSize: 10,
+      //     fontWeight: FontWeight.bold,
+      //   ), // Style only the active label
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.favorite), label: 'Favorites'),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.shopping_cart), label: 'Cart'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      //   ],
+      // ),
     );
   }
 
@@ -497,12 +497,29 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '\$$discountedPrice',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '\₹${item['original_price']}',
+                              style: const TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey,
+                                decoration: TextDecoration
+                                    .lineThrough, // Strikethrough for original price
+                              ),
+                            ),
+                            const SizedBox(width: 5), // Spacing between prices
+                            Text(
+                              '\₹$discountedPrice',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors
+                                    .red, // Highlight the discounted price
+                              ),
+                            ),
+                          ],
                         ),
                         IconButton(
                           onPressed: () {
@@ -577,7 +594,7 @@ class _ClothesSectionPageState extends State<ClothesSectionPage> {
     }
     List<String> splitPath = imagePath.split('/');
     String imageName = splitPath.last;
-    return 'http://10.0.2.2:6000/api/products/fetch-product-image/$imageName';
+    return '$baseUrl/products/fetch-product-image/$imageName';
   }
 
   Widget _buildShimmerEffect() {
